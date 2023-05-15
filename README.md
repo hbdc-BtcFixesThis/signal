@@ -5,53 +5,61 @@ The bitcoin rabbit hole told by Bitcoiners
 
 ### What am I?
 
-I'd like to think of myself as the bitcoin rabbit hole told by bitcoiners. I am simply a book of data with signatures. Anyone is free to add data to my record by signing a message with the contents of their broadcast using any private key they own. 
+I'd like to think of myself as the bitcoin rabbit hole, told by bitcoiners. I too am simply a book of data with signatures. Anyone is free to add data to my record by signing a message with the contents of their broadcast using any private key they own. 
 
 Anyone that would like like to have a copy of me is welcome to run me on any machine. My operators decide on my size and the extent to which I can grow on their machine. By example, if my full set of records grows to 2GB and an operator of one of my nodes only wants to store 1GB worth of my records, they are able to do so. I will, in such cases, only keep the strongest signals that make up my desired size as defined by my operators. 
 
-However, I determine signal strength somewhat differently from most other platforms. No amount of attention or coersion can affect the signals I broarcast. Users of my network are free to broadcast their opinion, positive and or negative, about any data in my record. 
+However, I determine signal strength somewhat differently from most other platforms. No amount of attention or coersion can affect the signals I broadcast. Users of my network are free to broadcast their opinion about any data in my record. 
 
 The way people voice their opinion here is by signing messages. They do this to convey an opinion and their conviction in that option. Messages that make up valid signals are signed with keys that are capable of spending any amount of bitcoin. You, as an individual with opinions, can broadcast that opinion, change that opinion, broadcast competing ideas, and do so while never having to reveal your identity unless you choose to. The opinions broadcasted about the data I am made up of is what I have been referring to as signals. In this way my opinion of the data I am made up of is a reflection of the thoughts of my users.
 
-Users do not have to move bitcoin in their possession to express conviction. If a user displays strong agreement or disagreement with a record, and they did so by sending a valid signal, anyone with a bitcoin node can verify that signal; and the records replicability across the hosts of my data, in turn, grows with respect to the magnitude of that signal. If a bitcoiner strongly agrees with a record they happen to encountered they are welcome to strengthen that signal for others to see. That signal is just a message that says 
+Users do not have to move bitcoin in their possession to express conviction. If a user displays strong agreement or disagreement with a record, and they did so by sending a valid signal, anyone with a bitcoin node can verify that signal; and the records replicability across the hosts of my data, in turn, grows with respect to the magnitude of that signal. If a bitcoiner feels strongly with a record they happen to encountered, they are welcome to strengthen that signal for others to see. That signal is just a message that says 
 
 
 > This is not a bitcoin transaction!
 >
-> I, the individual in possession of the private key needed to spend bitcoin utxo’s associated with address
-> {btc wallet address} {Agree/Disagree (+/-)} with {record hash}
->
-> Of the sats in my possession in this address, I pledge to not allow the total balance to drop below
-> {# of sats}.
->
-> As long as this remains true so will my conviction in this statement.
+> Of the bitcoin in my possession,
+> {x%} of the total amount of held in {address}
+> shall be used to display my conviction
+> in {record id}.
 >
 >
 > Peace and love freaks
 
-
 The user would fill in the placeholders, use their signing device of choice (also known as bitcoin wallet), sign that message, and post their message along with the signature. I then ask Bitcoin if the author of that signature is in fact the owner of the bitcoin they claim to own along with the claims about their conviction in the signal they are attempting to broadcast. If no lies were told, which anyone can and should easily verify, then I persist that opinion for as long as the statement signed remains true.
 
-The overall strength of that signal is the the sum of all the sats held in all the addresses that have signed and broadcasted signals with respect to the message. This may at times be confusing as two messages may have the same sum but completely different magnitudes. I hope this simple example helps visualize how I see the data I encounter:
+In this way, the author of the signal is able to specify the exact strength of that signal. This also means the address can be reused without bitcoin being required to move in for the same address to be associated with multiple signals.
 
+```math
+Address_{signals} = \set{Address_{total}*Signal_{{record}_i}, \dots\, Address_{total}*Signal_{{record}_n}}
 ```
-Signal A
-votes: 
-	+100 sats
-	-100 sats
-size: 200 bytes
-score: 0
-signal: 1sat/byte
+
+The only requiremet I have is
+
+```math
+Address_{total} \geq \sum_{i=0}^{n} Address_{total}*Signal_{{record}_i}
 ```
+
+Where $Address_{total}$ is the total amount of bitcoin held in an address thats broadcasted $Signal_{{record}_i}$ for $record_i$. Or in other words 
+
+```math
+\sum_{i=0}^{n}Signal_{{record}_i} \leq 100 percent
 ```
-Signal B
-votes: 
-	+1000 sats
-	-1000 sats
-size: 200 bytes
-score: 0
-signal: 10sat/byte
+
+Which means that all signals broadcasted from an address must add up to no more then the bitcoin held in the address. I use percentages to avoid having to descisions with respect to which signals to hold. If I were to ask users how much bitcoin they'd like to use for the signal they're broadcasting then the sigal would be lost if the funds associated with the address goes below the amount specified in the signal. Now lets say multiple signals were sent and the total for all sigals broadcasted goes below the total associated with the address. To avoid potentially subjectively dropping signals I use percetages. In this way the signals always remain valid.
+
+The overall strength of that signal is defined as
+
+```math
+record_i = \sum_{j=0}^{n} \frac{total_{Address_{j}}*Signal_{j_{{record}_i}}}{record_{size}}
 ```
+
+Therefore if $record_x$ has 3 addresses, lets call them $total_{Address_{i}} = 1btc$, $total_{Address_{j}} = 3btc$ and $total_{Address_{k}} = 6btc$, each strengthening the signal for $record_x$ by 100%, 66%, and 34% respectively, and the $record_{size}$ is 2mb; the strength of the signal is
+
+```math
+record_i = \sum_{j=0}^{n} \frac{total_{Address_{j}}*Signal_{j_{{record}_i}}}{record_{size}} = \frac{1*1+3*.66+6*.34}{2mb} = ~2.5 bitcoin/mb
+```
+
 
 In this way I am able to break up into incredibly small and large replicas of parts of myself. I benefit and thrive on bitcoins success. I myself only survive if bitcoin does. I can also be of great assistance to Bitcoin and it's human counterparts. One example that comes to mind is, let’s say a bitcoiner sends a message and adds an optional origin address. Any reader of that content is always free to send bitcoin to that address if they so choose. This not only helps support the brain behind the idea broadcasted but also strengthens the signal for it to be further replicated across my nodes.
 
