@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<title>Bitcoin Alias</title>
+<link rel="stylesheet" href="css/navbar.css">
+<link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+<div class="bg">
+	<img class="bg" src="images/compass.jpg" alt="Signal through the noise">
+</div>
+	<header class="header">
+        <!-- Logo -->
+        <a href="/" class="logo">
+			<img class="logo-img" src="images/lattice.jpg" alt="Signal through the noise">
+		</a>
+
+        <!-- Hamburger icon -->
+        <input class="side-menu" type="checkbox" id="side-menu"/>
+        <label class="hamb" for="side-menu"><span class="hamb-line"></span></label>
+
+        <!-- Menu -->
+        <nav class="nav">
+            <ul class="menu">
+                <li><a href="/index.html">Home</a></li>
+                <li><a href="/upload.html">Broadcast</a> </li>
+                <li><a href="/settings.html">Settings</a> </li>
+                <li><a href="/about.html">About</a></li>
+            </ul>
+        </nav>
+    </header>
+<!--div class="infobox">
+	<h2>Bitcoin Alias</h2>
+	The bitcoin alias is a small database of aliases any bitcoiner can run, verrify, and update. For now the only types of aliases implimented are text and ip. An alias acts as ideantifiers other people or protocols know how to interpret. I call it a alias because every record publically distributed across alias node runners are nothing more then signed messages by bitcoiners. Only the owners of bitcoin can manipulate the aliases to the bitcoin they own. Owning your own bitcoin is essetially the only requirement.<br>
+	To add an alias you specify the information to the alias` in the ui. When your finshed there will be a formatted message. You should also see the minimum required amount denominated in sats. To publish a public update other nodes will accept it must be signed with the private keys to the address specified in the record. If that address has utxo's that add up to the required amount (or more), given the size of the record and cost per byte, and the record is properly formatted the update is broadcasted for other nodes to verrify. There is no way for anyone to really cencor these aliases and anyone is free to fork, clone, or participate. If a bad actor tries to cencor certain aliases/bitcoiners the bitcoiners themselves are free to plug a machine in and run their own. <br>
+	This node implimentation is set to crawl the records of its peers, verrify records using their bitcoin node, and merge all results. The reason this works is because on record that is verrifiable can be forged; the forgerer would need to know the private key which makes them the owner. If at some point the bitcoin in the address for an alias is spent and the total unspent funds does not meet the aliases required cost it becomes invalid and nodes are free and should delete those. In this way, as long as bitcoin works as intended, this can be used as a distributed router of internet traffic.<br>
+
+	<br>
+	The way this is calculated is by finding the cost per byte and multiplying that by the number of bytes the alias takes up. The cost per byte is currently set to 21M/4TB. 
+
+
+	<br>
+	One use case would be associating an ip with a bitcoin address that you would like anyone to easily find and verify the alias was published by the owner of the keys, to all node runners. 
+	<br>
+	It  will remain free and open sourced. There is no magical token and I stand nothing to gain from it financially. It is in a way a "notarized" voting mechanism with the purpose of distributing the highest signal data across the greatest number of participants. It's what I believe the goal is for "ordinals" but something I dont think that type of mechanism can do as it runs into the same oracle problem everything else does due to the ability to interact with it off chain. This is in a way a market for storage. This in a weird way is part of a set of ideas I've had for years but I believe this was the piece that was ultimately missing to be able to connect a few of the pieces. I believe its something nostr relays also need and can use as an optional means for access/pw management, peer finding, service discovery, etc. Ultimately I believe some version of this type of protocol will end up being what the future dns types of protocols will look like. Its just signed messages in expected formats that denote preferences publicly; free individuals acting in their own self interest. It the bitcoin rabbit hole written by bitcoiners
+</div--!>
+</body>
+</html>

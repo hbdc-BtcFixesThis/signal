@@ -1,0 +1,217 @@
+input[type=text]{
+    width:100%;
+    border:2px solid #aaa;
+    border-radius:4px;
+    margin:8px 0;
+    outline:none;
+    padding:8px;
+    box-sizing:border-box;
+	background-color: #0000002b;
+	color: #ffb900a6;
+    transition:.3s;
+}
+  
+input[type=text]:focus{
+    border-color:dodgerBlue;
+    box-shadow:0 0 8px 0 dodgerBlue;
+}
+
+:root{
+    --white: #f9f9f9;
+    --nav-black: #000000ad;
+    --grey: #85888C;
+	--orange: #ff990078;
+}
+
+/* Reset */
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body{
+    background-color: var(--white);
+}
+
+html {
+  font-family: cursive;
+  font-size: 1.5em;
+  line-height: 1.75;
+  margin: auto;
+  max-width: 85ch;
+  padding: 1em 0.5em;
+}
+
+img {
+  width: 100%;
+}
+
+/* Optional 100 more bytes */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--orange);
+  margin: 3em 0 1em;
+}
+
+p,
+ul,
+ol {
+  color: var(--orange);
+  margin-bottom: 2em;
+}
+
+
+.logo-img{
+    float: left;
+    position: relative;
+    margin: 10px 15px 5px 10px;
+	height: 75px;
+	width: 75px;
+}
+
+a{
+    text-decoration: none;
+}
+
+ul{
+    list-style: none;
+}
+
+/* Header */
+.header{
+    background-color: var(--nav-black);
+    box-shadow: 1px 1px 5px 0px var(--grey);
+    position: sticky;
+    top: 0;
+    width: 100%;
+}
+
+/* Logo */
+.logo{
+    display: inline-block;
+    color: var(--white);
+    margin-left: 10px;
+
+}
+
+/* Nav menu */
+.nav{
+  	width: 35%;
+    height: 100%;
+    position: fixed;
+    background-color: var(--nav-black);
+    overflow: hidden;
+    
+}
+
+.menu a{
+    display: block;
+    padding: 30px;
+	color: var(--orange);
+}
+
+.menu a:hover{
+    background-color: var(--grey);
+}
+
+.nav{
+    max-height: 0;
+    transition: max-height .5s ease-out;
+}
+
+/* Menu Icon */
+
+.hamb{
+    cursor: pointer;
+    float: right;
+    padding: 50px 40px;
+}
+
+
+.hamb-line {
+    background: var(--orange);
+    display: block;
+    height: 4px;
+    position: relative;
+    width: 30px;
+}
+
+.hamb-line::before,
+.hamb-line::after{
+    background: var(--orange);
+    content: '';
+    display: block;
+    height: 100%;
+    position: absolute;
+    transition: all .4s ease-out;
+    width: 100%;
+}
+
+.hamb-line::before{
+    top: 7px;
+}
+
+.hamb-line::after{
+    top: -7px;
+}
+
+
+.side-menu {
+    display: none;
+}
+
+/* Toggle menu icon */
+
+.side-menu:checked ~ nav{
+    max-height: 100%;
+}
+
+.side-menu:checked ~ .hamb .hamb-line {
+    background: transparent;
+}
+
+.side-menu:checked ~ .hamb .hamb-line::before {
+    transform: rotate(-45deg);
+    top:0;
+
+}
+
+.side-menu:checked ~ .hamb .hamb-line::after {
+    transform: rotate(45deg);
+    top:0;
+}
+
+
+/* Responsiveness */
+
+@media (min-width: 1080px) {
+    .nav{
+        max-height: none;
+        top: 0;
+        position: relative;
+        float: right;
+        width: fit-content;
+        background-color: transparent;
+
+    }
+
+    .menu li{
+        float: left;
+    }
+
+    .menu a:hover{
+        background-color: transparent;
+        color: var(--grey);
+        
+    }
+    
+    .hamb{
+        display: none;
+    }
+
+}
