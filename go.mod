@@ -1,6 +1,6 @@
-module signal
+module github.com/hbdc-BtcFixesThis/signal
 
-go 1.19
+go 1.20
 
 require go.etcd.io/bbolt v1.3.7
 
