@@ -22,8 +22,6 @@
         <!-- Menu -->
         <nav class="nav">
             <ul class="menu">
-                <li><a href="/index.html">Home</a></li>
-                <li><a href="/broadcast.html">Broadcast</a> </li>
                 <li><a href="/settings.html">Settings</a> </li>
                 <li><a href="/about.html">What am I?</a></li>
             </ul>
@@ -41,16 +39,28 @@
   <div class="tbl-content">
     <table cellpadding="0" cellspacing="0" border="0">
       <tbody id="tbl-body-content">
+	    <tr class="add-row">
+		  <td colspan="4">
+		    <button class="button-5" role="button" id="create-record-trigger">+</button>
+		  </td>
+	    </tr>
       </tbody>
     </table>
   </div>
 </section>
-<div class="modal">
+<div class="modal" class="bg" id="create-record-modal">
+	<img class="bg" src="images/lattice.jpg" alt="Signal through the noise">
     <div class="modal-content">
-        <span class="close-button">×</span>
-        <h1>Hello, I am a modal!</h1>
+        <span class="close-button" id="cancel-create-trigger">×</span>
+		  <form name="broadcast">
+			<input type="text" id="new-record-name" name="new-record-name" placeholder="Unique record name..."></input>
+			<textarea type="text" id="new-record-content" name="new-record-content" placeholder="What would you like to spread?" autocomplete="off"></textarea>
+			<input type="submit" value="Submit">
+		  </form>
     </div>
 </div>
 </body>
 <script type="text/javascript" src="js/home.js"></script>
+<script type="text/javascript" src="js/modal.js"></script>
+<script type="text/javascript" src="js/broadcast.js"></script>
 </html>
