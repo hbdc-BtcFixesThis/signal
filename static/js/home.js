@@ -37,7 +37,7 @@ function genRow(row, headers) {
 function genRows(headers, rows) {
 	var modalTemplateHtml = '';
 	for (row of rows) {
-		document.getElementById('tbl-body-content').innerHTML += '<tr class="trigger-modal">' + genRow(row, headers) + '</tr>';
+		document.getElementById('tbl-body-content').innerHTML += '<tr class="trigger-modal id="' + row.id + '>' + genRow(row, headers) + '</tr>';
 	}
 }
 
