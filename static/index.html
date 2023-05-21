@@ -5,6 +5,7 @@
 <link rel="stylesheet" href="css/navbar.css">
 <link rel="stylesheet" href="css/home.css">
 <link rel="stylesheet" href="css/loading.css">
+<link rel="stylesheet" href="css/errors.css">
 </head>
 <body>
 <div class="bg">
@@ -28,6 +29,29 @@
             </ul>
         </nav>
     </header>
+
+    <div class="banner-container" hidden>          
+      <div class="banner-notice" hidden>
+        <div class="banner banner-error" hidden>
+		  <div id="banner-error-message"></div>
+		  <span class="close-banner-button" id="ack-error">×</span>
+        </div>
+        <div class="banner banner-warning" hidden>
+		  <div id="banner-warning-message"></div>
+		  <span class="close-banner-button" id="ack-warning">×</span>
+        </div>
+        <div class="banner banner-info" hidden>
+		  <div id="banner-info-message"></div>
+		  <span class="close-banner-button" id="ack-info">×</span>
+        </div>
+        <div class="banner banner-success" hidden>
+		  <div id="banner-success-message"></div>
+		  <span class="close-banner-button" id="ack-success">×</span>
+        </div>
+      </div>
+    </div>
+
+
 <section id="results-table">
   <div class="tbl-header">
     <table cellpadding="0" cellspacing="0" border="0">
@@ -62,6 +86,7 @@
 </div>
 </body>
 <script type="text/javascript" src="js/urls.js"></script>
+<script type="text/javascript" src="js/errors.js"></script>
 <script type="text/javascript" src="js/request.js"></script>
 <script type="text/javascript" src="js/home.js"></script>
 <script type="text/javascript" src="js/modal.js"></script>

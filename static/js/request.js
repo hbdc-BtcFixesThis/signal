@@ -7,7 +7,7 @@ function removeLoadingClass(elem) {
 
 function addLoadingClass(elem) {
 	elem.className += ' ' + loadingClassName;
-	setTimeout(removeLoadingClass, 2000, elem);
+	// setTimeout(removeLoadingClass, 2000, elem);
 }
 
 function sendJsonPost(path, data, success, fail) {
@@ -19,7 +19,7 @@ function sendJsonPost(path, data, success, fail) {
 
 	xhr.onreadystatechange = () => {
 		// Call a function when the state changes.
-		if (xhr.readyState === XMLHttpRequest.DONE && xhr.status === 200) {
+		if (xhr.readyState === XMLHttpRequest.DONE) {
 			// Request finished. Do processing here.
 			if (xhr.status === 200) {
 				success(xhr)
