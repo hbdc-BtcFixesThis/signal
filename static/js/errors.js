@@ -1,13 +1,13 @@
 var banners = {
 	error: document.getElementById("ack-error"),
-	warninig: document.getElementById("ack-warning"),
+	warning: document.getElementById("ack-warning"),
 	info: document.getElementById("ack-info"),
 	success: document.getElementById("ack-success"),
 };
 
 var messageBanners = {
 	error: document.getElementById("banner-error-message"),
-	warninig: document.getElementById("banner-warning-message"),
+	warning: document.getElementById("banner-warning-message"),
 	info: document.getElementById("banner-info-message"),
 	success: document.getElementById("banner-success-message"),
 };
@@ -20,9 +20,8 @@ function setBanner(close, banner, msg, hidden) {
 }
 
 function showBanner(key, msg) {
-	// ex: msg = wtf; key = error;
-	// <strong>Error</strong>wft
-	let msgHtml = '<strong>' + key.charAt(0).toUpperCase() + key.slice(1) + '</strong> ' + msg;
+	capitalized = key.charAt(0).toUpperCase() + key.slice(1);
+	let msgHtml = '<strong class="banner-text-margin">' + capitalized + '</strong> ' + msg;
 	setBanner(banners[key], messageBanners[key], msgHtml, false);
 }
 

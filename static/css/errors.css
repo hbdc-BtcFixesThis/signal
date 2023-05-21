@@ -13,50 +13,38 @@
 .banner{
   width:80%;
   padding:20px;
-  border:1px solid #eee;
+  border:3px solid #75010185;
   border-left-width:5px;
-  border-radius: 3px;
+  border-radius: 12px;
   margin:10px auto;
   font-family: 'Open Sans', sans-serif;
-  font-size: 16px;
+  font-size: 18px;
+  color: var(--orange);
 }
+
+
+.banner-text-margin {margin-right: 12px;}
+.banner-error strong {color: #c40600;}
+.banner-warning strong {color:#f0ad4e;}
+.banner-info strong {color: #5bc0de;}
+.banner-success strong {color: #2b542c;}
 
 .banner-error{
-  border-left-color: #d9534f; /* Left side border color */
-  background-color: rgba(217, 83, 79, 0.1); /*Same color as the left border with reduced alpha to 0.1*/
-  background-color: white;
-}
-
-.banner-error strong{
-  color:#d9534f;
+  border-left-color: #c40600;
+  background-color: #000000d4;
 }
 
 .banner-warning{
   border-left-color: #f0ad4e;
-  background-color: rgba(240, 173, 78, 0.1);
-  background-color: white;
-}
-
-.banner-warning strong{
-  color:#f0ad4e;
+  background-color: #000000d4;
 }
 
 .banner-info {
   border-left-color: #5bc0de;
-  background-color: rgba(91, 192, 222, 0.1);
-  background-color: white;
-}
-
-.banner-info strong {
-  color: #5bc0de;
+  background-color: #000000d4;
 }
 
 .banner-success {
   border-left-color: #2b542c;
-  background-color: rgba(43, 84, 44, 0.1);
-  background-color: white;
-}
-
-.banner-success strong {
-  color: #2b542c;
+  background-color: #000000d4;
 }

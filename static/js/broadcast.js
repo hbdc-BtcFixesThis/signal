@@ -12,10 +12,12 @@ function toggleCreateRecordModal() {
 function successfullyAddedRecord(xhr) {
     removeLoadingClass(submitNewRecord);
 	toggleCreateRecordModal();
+	showSuccessBanner(xhr.responseText)
 }
 
 function failedToAddRecord(xhr) {
 	removeLoadingClass(submitNewRecord);
+	showErrorBanner(xhr.responseText);
 }
 
 createRecordTrigger.addEventListener("click", toggleCreateRecordModal);
