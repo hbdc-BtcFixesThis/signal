@@ -1,4 +1,4 @@
-var closeBanners = {
+var banners = {
 	error: document.getElementById("ack-error"),
 	warninig: document.getElementById("ack-warning"),
 	info: document.getElementById("ack-info"),
@@ -13,9 +13,9 @@ var messageBanners = {
 };
 
 function setBanner(close, banner, msg, hidden) {
+	close.hidden = hidden;
 	close.parentNode.hidden = hidden;
 	close.parentNode.parentNode.hidden = hidden;
-	close.parentNode.parentNode.parentNode.hidden = hidden;
 	banner.innerHTML = msg
 }
 
@@ -23,11 +23,11 @@ function showBanner(key, msg) {
 	// ex: msg = wtf; key = error;
 	// <strong>Error</strong>wft
 	let msgHtml = '<strong>' + key.charAt(0).toUpperCase() + key.slice(1) + '</strong> ' + msg;
-	setBanner(closeBanners[key], messageBanners[key], msgHtml, false);
+	setBanner(banners[key], messageBanners[key], msgHtml, false);
 }
 
 function hideBanner(key) {
-	setBanner(closeBanners[key], messageBanners[key], '', true);
+	setBanner(banners[key], messageBanners[key], '', true);
 }
 
 function showErrorBanner(msg) {showBanner('error',  msg);}
@@ -35,7 +35,7 @@ function showWarningBanner(msg) {showBanner('warning', msg);}
 function showInfoBanner(msg) {showBanner('info', msg);}
 function showSuccessBanner(msg) {showBanner('success', msg);}
 
-for (const [key, value] of Object.entries(closeBanners)) {
+for (const [key, value] of Object.entries(banners)) {
 	// console.log(`${key}: ${value}`);
 	value.addEventListener('click', function() {hideBanner(key)});
 }
