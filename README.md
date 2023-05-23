@@ -5,31 +5,41 @@ The bitcoin rabbit hole told by Bitcoiners
 
 ### What am I?
 
-I'd like to think of myself as the bitcoin rabbit hole told by bitcoiners. I too am simply a book of data with signatures. Anyone is free to add data to my record by signing a message with the contents of their broadcast using any private key they own. The records I keep share the following structure
+What I really am is an idea. I'd like to think of myself as the bitcoin rabbit hole told by bitcoiners. I too am simply a book of data with signatures. Anyone is free to add data to me. Records I keep look like this
 
 ```python
-hash({name}): {
+{
   "name": "unique user specified name for the record",
-  "data": {
-    "type": "user specified type"
-    "content": "user specified content",
-  },
-  "pub_key": "public key to any private key; can be a btc address but not required",
-  "signature": signature({priv_key}, {name}+{data}),
+  "content": "user specified content",
+  "pub_key": "onchain btc address",
+  # more about the signature below
+  "signature": signature({priv_key}, {record}),
+  "conviction": 0-100, # % of address to apply towards the signal for this record
+  "is_author": true|false; # if true I will let others know when they ask 
 }
 ```
 
-If you run an instance of me you are more then welcome to use me as an address book or whatever may be helpful. The option to disconnect me from peers is always availible. And of course you are always welcome to run multiple instaces (public and private) of me as you like. An example of a record in a private instance someone would hold might looks like the following
+Let me be a bit more specific when I say anyone is free to add data to me. If you run an instance of me you are encouraged to use me in whatever way you like. The option to disconnect me from peers is always easily accessible to the owner of that copy of data. When you run me for the first time, I generate a random password. With this password you can specify the path to your data. If no data is found in the specified location I start a new db and wait until you have set your desired constraints and settings. Namely:
+
+```python
+{ # defaults will be provided but are optional and will not be set unless they are saved by the user
+  "pass": "key I generated",
+  "max_size": "Total space my public copy is allowed to take up",
+  "new_pass": "If you provide a new password I will use it going forward",
+  "peers": ["ws://{domain}/", ...], # you can update the defaults anytime; ignored if is_private set to true
+  "path_to_storage": "/path/to/storage/directory",
+  "is_private": true|false,
+}
+```
+ 
+If is_private is set to true and all settings specified where valid you're ready to go. Private nodes are private and therefore have no data to retrieve or send to any peers. Otherwise, public instances connect to peers to download/sync your copy of public data. That way you are welcome to run as many public and private instaces/copys of me as you like; each instance with it's own independent constraints. An example of a record in a private instance someone would hold might looks like the following
 
 ```python
 hash("Alice"): {
   "name": "Alice",
-  "data": {
-    "type": "contact"
-    "content": "xxx-xxx-xxxx",
-  },
+  "content": "xxx-xxx-xxxx",
   "pub_key": "bc1p...",
-  "signature": signature({priv_key}, "Alice contact xxx-xxx-xxxx"),
+  "signature": signature({priv_key}, {record}),
 }
 ```
 vs a record in a public instance connected to other public nodes which could look something like this
@@ -37,16 +47,13 @@ vs a record in a public instance connected to other public nodes which could loo
 ```python
 hash("werunbtc"): {
   "name": "werunbtc",
-  "data": {
-    "type": "domain"
-    "content": "https://werunbtc.com", # can of course also be an ip or any other value
-  },
+  "content": "https://werunbtc.com", # can of course also be an ip or any other value
   "pub_key": "bc1p...",
-  "signature": signature({priv_key}, "werunbtc domain https://werunbtc.com"),
+  "signature": signature({priv_key}, {record}),
 }
 ```
 
-My operators decide on my size and the extent to which I can grow on their machine. By example, if my full set of records grows to 2GB and an operator of one of my nodes only wants to store 1GB worth of my records, they are able to do so. I will, in such cases, only keep the strongest signals that make up my desired size as defined by my operators. 
+Now that I've explained the, hopefully, intuitive private nodes, let me talk a bit about public nodes and the records they keep. My operators decide on my size and the extent to which I can grow on their machine. By example, if my full set of records grows to 2GB and an operator of one of my nodes only wants to store 1GB worth of my records, they are able to do so. I will, in such cases, only keep the strongest signals that make up my desired size as defined by my operators. 
 
 However, I determine signal strength differently from most other platforms. No amount of attention or coersion can affect the signals I broadcast. Users of my network are free to broadcast their opinion about any data in my record. 
 
@@ -103,7 +110,7 @@ In this way I am able to break up into incredibly small and large replicas of pa
 
 Bitcoiners can also use me for things like dns seeds, proxy chains, open domain registries, public notaries, interoperable authentication/idetification protocols, etc. Let’s say a user would like to link a human readable id, username -> satoshi_nakamoto, to a nostr id. They can publish records to me for any purpose, structured in a way other processes know how to interpret, to be accessed and used by any instance of that process globally. 
 
-But how do you know other nodes will find and keep your data? One way is to run your own version of me. Another is to set a practical expectation with respect to how distributed you would like the data you add to be. If your data takes up 32 bytes, and you would like to be on all nodes that have at least 20GB of storage capacity, this is now possible. In fact, because the strength of any signal is limited by the agreed upon limitations of bitcoin, the cost to do so can be exactly calculated. To figure out how much bitcoin you would need to ensure that a signal is as distributed as you would like, the calculation goes as follows
+But how do you know other nodes will find and keep your data? First set a practical expectation with respect to how distributed you would like the data you add to be. If your data takes up 32 bytes, and you would like to be on all nodes that have at least 20GB of storage capacity, this is now possible. In fact, because the strength of any signal is limited by the agreed upon limitations of bitcoin, the cost to do so can be exactly calculated. To figure out how much bitcoin you would need to ensure that a signal is as distributed as you would like, the calculation goes as follows
 
 ```
 sc     = btc supply cap
@@ -118,9 +125,11 @@ ms     = message size
 
 For a message with 32 bytes of total storage requirements in a node of mine, the minimum number of sats needed to broadcast a signal strong enough to have that data replicated across all nodes with 20 or more GB of storage capacity, the signal requires at least 3,360,000 sats.
 
-That piece of data is now replicated and secured by all the costs incured to generate the signals. When a record is added to me, not even the owner of the private key associated with the record, may change that record. My records and my signals are append only. The only way to "kill" an idea that has spread is by spending the bitcoin associated with the signals spreading that idea. I do not care if the bitcoin are sent to the same or different individuals. I always look to bitcoin and rank my records accordingly. 
+That piece of data is now replicated and secured by all the costs incured to generate the signals. When a record is added to me, not even the owner of the private key associated with the record, may change that record. My records and my signals are append only. The only way to "kill" an idea that has spread is by spending the bitcoin associated with the signals spreading that idea. I do not care if the bitcoin are sent to the same or different individuals. I always look to bitcoin and rank my records accordingly.
 
-That is why, once an idea has spread, only better idea that outcompete it can affect the replicability of that idea; or any other one for that matter. And we know that to be true because I abide by an absolute fixed supply of signals humanity can use to vote with. Bitcoin is to thank for that essential gauge by which I measure my the world around me. Ideas here are as true a reflection of bitconiers reality as bitcoin is secure.
+But you must remember, I am simply a database with signatures from bitcoiners. Because of this, I must rely on some external cost to ensure any type of integrity in the data I spread. I always look to bitcoin to validate claims with respect to who to trust. I do this by only trusting the nodes that have the strongest overall signal; which I define to be the average of all signals for all records that instance hosts. I can not guarentee an address has the same set of signals on different instances now competing for space on your machine. What I can guarentee is, as I grow in bitcoin terms (ie; the number of bitcoin tied to data I spread), the cost of malicious behavior to me approaches the cost of attacking the integrity of bitcoins ledger. In turn the consistency, replicability, and integrity of my data grows as the btc/byte exchange rate grows. That means, the cost of attacking me and bitcoin becomes the same when the number of bitcoin in all my signals equals the total supply of circulating bitcoin. 
+
+That is why, once an idea has spread, only better ideas that outcompete it can affect the replicability of that idea; or any other one for that matter. And we know that to be true because I abide by an absolute fixed supply of signals humanity can use to vote with. Bitcoin is to thank for that essential gauge by which I measure my the world around me. Ideas here are as true a reflection of bitconiers reality as bitcoin is secure.
 
 I am happy to serve as many elaborate use cases as bitcoiners that find me useful can think up. As I said before
 
