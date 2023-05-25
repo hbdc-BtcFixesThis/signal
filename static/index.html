@@ -15,21 +15,16 @@
 </div>
 	<header class="header">
         <!-- Logo -->
-        <a href="/" class="logo">
-			<img class="logo-img" src="images/lattice.jpg" alt="Signal through the noise">
+        <a href="/" class="header-image-container">
+			<img class="header-img-left" src="images/key.jpg" alt="Signal through the noise">
 		</a>
-
-        <!-- Hamburger icon -->
-        <input class="side-menu" type="checkbox" id="side-menu"/>
-        <label class="hamb" for="side-menu"><span class="hamb-line"></span></label>
-
-        <!-- Menu -->
-        <nav class="nav">
-            <ul class="menu">
-                <li><a href="/settings.html">Settings</a> </li>
-                <li><a href="/about.html">What am I?</a></li>
-            </ul>
-        </nav>
+		<div class="admin-key">
+			<input type="text"
+				   id="admin-key"
+				   class="admin-key"
+				   name="admin-key"
+			   	   placeholder="Are you my father?">
+		</div>
     </header>
 
     <div class="banner-container" hidden>          
@@ -49,6 +44,39 @@
       </div>
     </div>
 
+<section id="settings">
+	<div class="settings-storage">
+			<div id="percent-slider">
+				<div class="percent-slider-bars">
+					<div class="percent-slider-bar"
+						 id="percent-slider-server-storage-1"
+						 style="width: 50%;">50%
+					</div>
+					<div class="percent-slider-select"></div>
+					<div class="percent-slider-bar"
+						 id="percent-slider-server-storage-2"
+						 style="width: 50%;">50%
+					</div>
+				</div>
+				<input id="percent-slider-storage"
+					   class="percent-slider-input"
+					   type="range"></input>
+				<div id="percent-slider-ledger-wrapper">
+					<div class="percent-slider-ledger-key">
+						<div class="percent-slider-ledger percent-slider-color-2"></div>
+						<span class="percent-slider-ledger-text">Used</span>
+					</div>
+					<div class="percent-slider-ledger-key">
+						<div class="percent-slider-ledger percent-slider-color-1"></div>
+						<span class="percent-slider-ledger-text">Remaining</span>
+					</div>
+				</div>
+			</div>
+	</div>
+	<div class="settings-bitcoin"></div>
+	<div class="settings-peers"></div>
+	<div class="settings-password"></div>
+</section>
 
 <section id="results-table">
   <div class="tbl-header">
@@ -96,9 +124,15 @@
 		
 			<div id="percent-slider">
 				<div class="percent-slider-bars">
-					<div class="percent-slider-bar" style="width: 50%;">50%</div>
+					<div class="percent-slider-bar"
+						 id="percent-slider-new-rec-1"
+						 style="width: 50%;">50%
+					</div>
 					<div class="percent-slider-select"></div>
-					<div class="percent-slider-bar" style="width: 50%;">50%</div>
+					<div class="percent-slider-bar"
+						 id="percent-slider-new-rec-2"
+						 style="width: 50%;">50%
+					</div>
 				</div>
 				<input id="percent-slider-input" class="percent-slider-input" type="range"></input>
 				<div id="percent-slider-ledger-wrapper">

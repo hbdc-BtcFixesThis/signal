@@ -66,12 +66,14 @@ ol {
 }
 
 
-.logo-img{
+.header-img-left{
     float: left;
     position: relative;
     margin: 10px 15px 5px 10px;
-	height: 75px;
-	width: 75px;
+	height: 4em;
+	width: 4em;
+	border-radius: 4em;
+    opacity: .9;
 }
 
 a{
@@ -89,129 +91,26 @@ ul{
     position: sticky;
     top: 0;
     width: 100%;
+	height: 5em;
+	display: flex;
 }
 
 /* Logo */
-.logo{
+.header-image-container{
     display: inline-block;
     color: var(--white);
     margin-left: 10px;
-
 }
 
-/* Nav menu */
-.nav{
-  	width: 35%;
-    height: 100%;
-    position: fixed;
-    background-color: var(--nav-black);
-    overflow: hidden;
-    
-}
-
-.menu a{
-    display: block;
-    padding: 30px;
-	color: var(--orange);
-}
-
-.menu a:hover{
-    background-color: var(--grey);
-}
-
-.nav{
-    max-height: 0;
-    transition: max-height .5s ease-out;
-}
-
-/* Menu Icon */
-
-.hamb{
-    cursor: pointer;
+.admin-key {
     float: right;
-    padding: 50px 40px;
-}
-
-
-.hamb-line {
-    background: var(--orange);
-    display: block;
-    height: 4px;
     position: relative;
-    width: 30px;
+	width: 100%;
+	height: 3.7em;
+	padding: 1.3em 2.5em 1em 2.5em;
+    text-align: center;
 }
 
-.hamb-line::before,
-.hamb-line::after{
-    background: var(--orange);
-    content: '';
-    display: block;
-    height: 100%;
-    position: absolute;
-    transition: all .4s ease-out;
-    width: 100%;
-}
-
-.hamb-line::before{
-    top: 7px;
-}
-
-.hamb-line::after{
-    top: -7px;
-}
-
-
-.side-menu {
-    display: none;
-}
-
-/* Toggle menu icon */
-
-.side-menu:checked ~ nav{
-    max-height: 100%;
-}
-
-.side-menu:checked ~ .hamb .hamb-line {
-    background: transparent;
-}
-
-.side-menu:checked ~ .hamb .hamb-line::before {
-    transform: rotate(-45deg);
-    top:0;
-
-}
-
-.side-menu:checked ~ .hamb .hamb-line::after {
-    transform: rotate(45deg);
-    top:0;
-}
-
-
-/* Responsiveness */
-
-@media (min-width: 1080px) {
-    .nav{
-        max-height: none;
-        top: 0;
-        position: relative;
-        float: right;
-        width: fit-content;
-        background-color: transparent;
-
-    }
-
-    .menu li{
-        float: left;
-    }
-
-    .menu a:hover{
-        background-color: transparent;
-        color: var(--grey);
-        
-    }
-    
-    .hamb{
-        display: none;
-    }
-
+.settings-storage {
+	width: 33%;
 }
