@@ -1,0 +1,86 @@
+.admin-key {
+	float: right;
+	position: relative;
+	width: 100%;
+	height: 3.7em;
+	padding: 1.3em 2.5em 1em 2.5em;
+	text-align: center;
+}
+
+.settings-storage {
+	width: 50%;
+}
+.select-dropdown {
+	position: relative;
+	border-radius: 4px;
+	display: flex;
+	padding: 0.5em;
+}
+.select-dropdown select {
+	padding: 8px 24px 8px 10px;
+}
+.select-dropdown select:active, .select-dropdown select:focus {
+	outline: none;
+	box-shadow: none;
+}
+
+.storage-space-left {
+	margin: .5em 1em 1em 1em;
+}
+
+.storage-space-units {
+	width: 50%;
+    color: var(--orange);;
+    background-color: var(--nav-black);
+}
+
+
+.server-settings {
+	display: flex;
+	margin: 25px;
+}
+
+.settings-bitcoin, .settings-storage, .settings-peers {
+	position: relative;
+	width: 40%;
+}
+
+.settings-content {
+	padding: 8px;
+}
+
+.settings-bitcoin::before {
+	content: "";
+	background-image: url('/images/compass.jpg');
+    opacity: .65;
+    z-index: -1;
+    height: 100%;
+	width: 100%;
+    background-size: 100% 100%;
+	position: absolute;
+	box-shadow: inset 0px 0px 50px 20px black;
+}
+
+.settings-storage::before {    
+	content: "";
+	background-image: url('/images/machine.jpg');
+    opacity: .65;
+    z-index: -1;
+    height: 100%;
+	width: 100%;
+    background-size: 100% 100%;
+	position: absolute;
+	box-shadow: inset 0px 0px 50px 20px black;
+}
+
+.settings-peers::before {
+	content: "";
+	background-image: url('/images/lattice.jpg');
+    opacity: .65;
+    z-index: -1;
+    height: 100%;
+	width: 100%;
+    background-size: 100% 100%;
+	position: absolute;
+	box-shadow: inset 0px 0px 50px 20px black;
+}

@@ -1,31 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>Bitcoin Alias</title>
-<link rel="stylesheet" href="css/navbar.css">
-<link rel="stylesheet" href="css/home.css">
-<link rel="stylesheet" href="css/loading.css">
-<link rel="stylesheet" href="css/errors.css">
-<link rel="stylesheet" href="css/toggle.css">
-<link rel="stylesheet" href="css/percent_slider.css">
+	<title>Bitcoin Alias</title>
+	<link rel="stylesheet" href="css/navbar.css">
+	<link rel="stylesheet" href="css/settings.css">
+	<link rel="stylesheet" href="css/home.css">
+	<link rel="stylesheet" href="css/loading.css">
+	<link rel="stylesheet" href="css/errors.css">
+	<link rel="stylesheet" href="css/toggle.css">
+	<link rel="stylesheet" href="css/percent_slider.css">
 </head>
 <body>
-<div class="bg">
-	<img class="bg" src="images/rabbithole.jpg" alt="Signal through the noise">
-</div>
-	<header class="header">
-        <!-- Logo -->
-        <a href="/" class="header-image-container">
-			<img class="header-img-left" src="images/key.jpg" alt="Signal through the noise">
-		</a>
-		<div class="admin-key">
-			<input type="text"
-				   id="admin-key"
-				   class="admin-key"
-				   name="admin-key"
-			   	   placeholder="Are you my father?">
-		</div>
-    </header>
+
+	<div class="bg">
+		<img class="bg" src="images/2001_monolith.jpg" alt="Signal through the noise">
+	</div>
 
     <div class="banner-container" hidden>          
       <div class="banner-notice" hidden>
@@ -44,137 +33,215 @@
       </div>
     </div>
 
-<section id="settings">
-	<div class="settings-storage">
-			<div id="percent-slider">
-				<div class="percent-slider-bars">
-					<div class="percent-slider-bar"
-						 id="percent-slider-server-storage-1"
-						 style="width: 50%;">50%
-					</div>
-					<div class="percent-slider-select"></div>
-					<div class="percent-slider-bar"
-						 id="percent-slider-server-storage-2"
-						 style="width: 50%;">50%
-					</div>
-				</div>
-				<input id="percent-slider-storage"
-					   class="percent-slider-input"
-					   type="range"></input>
-				<div id="percent-slider-ledger-wrapper">
-					<div class="percent-slider-ledger-key">
-						<div class="percent-slider-ledger percent-slider-color-2"></div>
-						<span class="percent-slider-ledger-text">Used</span>
-					</div>
-					<div class="percent-slider-ledger-key">
-						<div class="percent-slider-ledger percent-slider-color-1"></div>
-						<span class="percent-slider-ledger-text">Remaining</span>
-					</div>
-				</div>
-			</div>
-	</div>
-	<div class="settings-bitcoin"></div>
-	<div class="settings-peers"></div>
-	<div class="settings-password"></div>
-</section>
-
-<section id="results-table">
-  <div class="tbl-header">
-    <table cellpadding="0" cellspacing="0" border="0">
-      <thead>
-        <tr id="tbl-header-tr">
-        </tr>
-      </thead>
-    </table>
-  </div>
-  <div class="tbl-content">
-    <table cellpadding="0" cellspacing="0" border="0">
-      <tbody id="tbl-body-content">
-	    <tr class="add-row">
-		  <td colspan="4">
-		    <button class="button-5" role="button" id="create-record-trigger">+</button>
-		  </td>
-	    </tr>
-      </tbody>
-    </table>
-  </div>
-</section>
-
-<div class="modal" class="bg" id="create-record-modal">
-	<img class="bg" src="images/lattice.jpg" alt="Signal through the noise">
-    <div class="modal-content">
-		<span class="close-button" id="cancel-create-trigger">×</span>
-		<form name="broadcast">	
+	<header class="header box-shadow">
+        <a href="/" class="header-image-container">
+			<img class="header-img-left"
+				 src="images/key.jpg"
+				 alt="Signal through the noise">
+		</a>
+		<div class="admin-key">
 			<input type="text"
-				   id="new-record-name"
-				   name="new-record-name"
-				   placeholder="Unique record name...">
+				   id="admin-key"
+				   class="admin-key"
+				   name="admin-key"
+			   	   placeholder="Are you my father?">
+		</div>
+    </header>
 
-			<input type="text"
-				   id="signal-wallet-address"
-				   name="signal-wallet-address"
-				   placeholder="Bitcoin Wallet Address...">
-  
-			<textarea type="text"
-					  id="new-record-content"
-					  name="new-record-content"
-					  placeholder="What would you like to spread?"
-					  style="height: 5em"
-					  autocomplete="off"></textarea>
-		
-			<div id="percent-slider">
-				<div class="percent-slider-bars">
-					<div class="percent-slider-bar"
-						 id="percent-slider-new-rec-1"
-						 style="width: 50%;">50%
-					</div>
-					<div class="percent-slider-select"></div>
-					<div class="percent-slider-bar"
-						 id="percent-slider-new-rec-2"
-						 style="width: 50%;">50%
-					</div>
+	<section id="settings" class="server-settings box-shadow">
+		<div class="settings-storage">
+			<div class="settings-content">
+				<input type="text"
+					   id="path-to-data-dir"
+					   name="path-to-data-dir"
+					   placeholder="path/to/data/dir ..."
+					   readonly>
+				<div class="select-dropdown">
+					<label for="storage-space-left">Max: </label> 
+					<input type="number"
+						   id="storage-space-left"
+						   class="storage-space-left"
+						   name="path-to-data-dir"
+						   step=0.01
+						   value=0
+						   readonly>
+					<select class="storage-space-units"
+							id="storage-space-units">
+						<option value="Byte">Byte</option>
+						<option value="KB">KB</option>
+						<option value="MB">MB</option>
+						<option value="GB">GB</option>
+						<option value="TB">TB</option>
+						<option value="PB" disabled>PB</option>
+						<option value="EB" disabled>EB</option>
+						<option value="ZB" disabled>ZB</option>
+						<option value="YB" disabled>YB</option>
+					</select>
 				</div>
-				<input id="percent-slider-input" class="percent-slider-input" type="range"></input>
-				<div id="percent-slider-ledger-wrapper">
-					<div class="percent-slider-ledger-key">
-						<div class="percent-slider-ledger percent-slider-color-2"></div>
-						<span class="percent-slider-ledger-text">Used</span>
+				<div id="percent-slider">
+					<div class="percent-slider-bars">
+						<div class="percent-slider-bar"
+							 id="percent-slider-server-storage-1"
+							 style="width: 50%;">50%</div>
+						<div class="percent-slider-select"></div>
+						<div class="percent-slider-bar"
+							 id="percent-slider-server-storage-2"
+							 style="width: 50%;">50%</div>
 					</div>
-					<div class="percent-slider-ledger-key">
-						<div class="percent-slider-ledger percent-slider-color-1"></div>
-						<span class="percent-slider-ledger-text">Remaining</span>
-					</div>
-				</div>
-			</div>
-
-			<input type="text"
-				   id="signal-signature"
-				   name="signal-signature"
-				   placeholder="Sign the message bellow and paste here to spread the message...">
-
-			<textarea type="text"
-				   id="signal-signature-message"
-				   name="signal-signature-message"
-				   style="height: 20em"
-				   readonly></textarea>
-
-			<!--div class="toggle-button-cover">
-				<div class="button-cover">
-					<strong>Private?</strong>
-					<div class="toggle-button b2" id="toggle-button">
-					<input type="checkbox" class="checkbox" />
-						<div class="knobs">
-					<span></span>
+					<input id="percent-slider-storage"
+						   class="percent-slider-input"
+						   type="range"></input>
+					<div id="percent-slider-ledger-wrapper">
+						<div class="percent-slider-ledger-key">
+							<div class="percent-slider-ledger percent-slider-color-2"></div>
+							<div class="percent-slider-ledger-text">Used</div>
 						</div>
-						<div class="layer"></div>
+						<div class="percent-slider-ledger-key">
+							<div class="percent-slider-ledger percent-slider-color-1"></div>
+							<div class="percent-slider-ledger-text">Free</div>
+						</div>
 					</div>
 				</div>
-			</div--!>
-				
-			<button class="create-record" id="submit-create-record">Broadcast</button>
-		</form>
-    </div>
-</div>
+				<input type="text"
+					   id="new-password"
+					   name="new-password"
+					   placeholder="Update password ..."
+					   readonly>
+			</div>
+		</div>
+		<div class="settings-bitcoin">
+			<div class="settings-content">
+				<label for="url-to-electrum">Electrum URL: </label> 
+				<input type="text"
+					   id="url-to-electrum"
+					   name="url-to-electrum"
+					   placeholder="Url to electrum server (public or personal) ...">
+
+				<label for="electrum-ssl-cert">Electrum SSL: </label> 
+				<input type="text"
+					   id="electrum-ssl-cert"
+					   name="electrum-ssl-cert"
+					   placeholder="Optional ssl cert for electrum (.crt) ...">
+
+				<label for="proxy-url">Proxy URL: </label> 
+				<input type="text"
+					   id="proxy-url"
+					   name="proxy-url"
+					   placeholder="Optional ssl cert for electrum">
+			</div>
+		</div>
+		<div class="settings-peers">
+			<div class="settings-content">
+			<table>
+				<tr>
+					<td>peers</td>
+				</tr>
+				<tr>
+					<th>xx.xxx.xx.xxx:xxxx</th>
+				</tr>
+				<tr>
+					<td>{domain}.com</td>
+				</tr>
+			</table>
+			</div>
+		</div>
+	</section>
+
+	<section id="results-table">
+	  <div class="tbl-header">
+		<table cellpadding="0" cellspacing="0" border="0">
+		  <thead>
+			<tr id="tbl-header-tr">
+			</tr>
+		  </thead>
+		</table>
+	  </div>
+	  <div class="tbl-content">
+		<table cellpadding="0" cellspacing="0" border="0">
+		  <tbody id="tbl-body-content">
+			<tr class="add-row">
+			  <td colspan="4">
+				<button class="button-5" role="button" id="create-record-trigger">+</button>
+			  </td>
+			</tr>
+		  </tbody>
+		</table>
+	  </div>
+	</section>
+
+	<div class="modal" class="bg" id="create-record-modal">
+		<img class="bg" src="images/rabbithole.jpg" alt="Signal through the noise">
+		<div class="modal-content box-shadow">
+			<span class="close-button" id="cancel-create-trigger">×</span>
+			<form name="broadcast">	
+				<input type="text"
+					   id="new-record-name"
+					   name="new-record-name"
+					   placeholder="Unique record name...">
+
+				<input type="text"
+					   id="signal-wallet-address"
+					   name="signal-wallet-address"
+					   placeholder="Bitcoin Wallet Address...">
+	  
+				<textarea type="text"
+						  id="new-record-content"
+						  name="new-record-content"
+						  placeholder="What would you like to spread?"
+						  style="height: 5em"
+						  autocomplete="off"></textarea>
+			
+				<div id="percent-slider">
+					<div class="percent-slider-bars">
+						<div class="percent-slider-bar"
+							 id="percent-slider-new-rec-1"
+							 style="width: 50%;">50%</div>
+						<div class="percent-slider-select"></div>
+						<div class="percent-slider-bar"
+							 id="percent-slider-new-rec-2"
+							 style="width: 50%;">50%</div>
+					</div>
+					<input id="percent-slider-input" class="percent-slider-input" type="range"></input>
+					<div id="percent-slider-ledger-wrapper">
+						<div class="percent-slider-ledger-key">
+							<div class="percent-slider-ledger percent-slider-color-2"></div>
+							<span class="percent-slider-ledger-text">Used</span>
+						</div>
+						<div class="percent-slider-ledger-key">
+							<div class="percent-slider-ledger percent-slider-color-1"></div>
+							<span class="percent-slider-ledger-text">Free</span>
+						</div>
+					</div>
+				</div>
+
+				<input type="text"
+					   id="signal-signature"
+					   name="signal-signature"
+					   placeholder="Sign the message bellow and paste here to spread the message...">
+
+				<textarea type="text"
+					   id="signal-signature-message"
+					   name="signal-signature-message"
+					   style="height: 20em"
+					   readonly></textarea>
+
+				<!--div class="toggle-button-cover">
+					<div class="button-cover">
+						<strong>Private?</strong>
+						<div class="toggle-button b2" id="toggle-button">
+						<input type="checkbox" class="checkbox" />
+							<div class="knobs">
+						<span></span>
+							</div>
+							<div class="layer"></div>
+						</div>
+					</div>
+				</div--!>
+					
+				<button class="create-record" id="submit-create-record">Broadcast</button>
+			</form>
+		</div>
+	</div>
 </body>
 <script type="text/javascript" src="js/urls.js"></script>
 <script type="text/javascript" src="js/errors.js"></script>

@@ -7,11 +7,10 @@ var results = {
 	],
 	'signals': [
 	{
-		'id': 'unique user specified name',
-		'type': 'text',
-		'content': 'test',
+		'id': 'monolith',
+		'content': 'If bitcoin could speak, what would it say?',
 		'signal': '.002 btc/byte',
-		'total_btc': '111111',
+		'total_btc': '0.0011',
 	},
 	],
 }
