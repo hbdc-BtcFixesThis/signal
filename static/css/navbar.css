@@ -8,7 +8,7 @@ input{
     box-sizing:border-box;
 	background-color: #0000002b;
 	color: #ffb900a6;
-    transition:.3s;
+	transition: .3s;
 }
   
 input:focus{
@@ -35,13 +35,13 @@ body{
 }
 
 html {
-  font-family: cursive;
+  font-family: monospace;
   margin: auto;
   max-width: 105ch;
   padding: 1em 0.5em;
   font-size: 1.3em;
   line-height: 1.75em;
-  color: var(--orange);
+  color: var(--grey);
 }
 
 img {
@@ -57,6 +57,7 @@ h5,
 h6 {
   color: var(--orange);
   margin: 3em 0 1em;
+  font-size: calc(1.5rem + 3vw);
 }
 
 p,
