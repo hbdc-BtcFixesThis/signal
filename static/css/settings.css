@@ -37,17 +37,30 @@
 
 
 .server-settings {
-	display: flex;
-	margin: 25px;
+	display: grid;
+    grid-auto-flow: column;
+    /* grid-auto-columns: 100%; */
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+	column-gap: 5px;
+    width: 33rem;
+    max-width: 72%;
+    margin: auto;
+    margin-top: 2rem;
 }
 
-.settings-bitcoin, .settings-storage, .settings-peers {
+.settings-auth,
+.settings-bitcoin,
+.settings-data-path,
+.settings-storage,
+.settings-peers {
 	position: relative;
-	width: 40%;
+	width: 16rem;
+	scroll-snap-align: start;
 }
 
 .settings-content {
-	padding: 8px;
+	padding: .8rem;
 }
 
 .settings-bitcoin::before {
@@ -77,6 +90,30 @@
 .settings-peers::before {
 	content: "";
 	background-image: url('/images/lattice.jpg');
+    opacity: .65;
+    z-index: -1;
+    height: 100%;
+	width: 100%;
+    background-size: 100% 100%;
+	position: absolute;
+	box-shadow: inset 0px 0px 50px 20px black;
+}
+
+.settings-auth::before {
+	content: "";
+	background-image: url('/images/key.jpg');
+    opacity: .65;
+    z-index: -1;
+    height: 100%;
+	width: 100%;
+    background-size: 100% 100%;
+	position: absolute;
+	box-shadow: inset 0px 0px 50px 20px black;
+}
+
+.settings-data-path::before {
+	content: "";
+	background-image: url('/images/rabbithole.jpg');
     opacity: .65;
     z-index: -1;
     height: 100%;

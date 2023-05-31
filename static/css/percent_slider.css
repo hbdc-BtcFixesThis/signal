@@ -1,6 +1,8 @@
 #percent-slider {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  margin: 3px 10px 0px 0px;
 }
 
 .percent-slider-ledger-key {
@@ -41,7 +43,7 @@
 
 .percent-slider-bars {
   width: 100%;
-  height: 10%;
+  height: 50%;
   display: flex;
   flex-direction: row;
   padding: 0;
