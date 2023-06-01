@@ -1,8 +1,101 @@
+:root{
+    --white: #f9f9f9;
+    --nav-black: #000000ad;
+    --grey: #85888C;
+	--orange: #ff990078;
+	--icon_size: 2em;
+}
+
+/* Reset */
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+	font-family: monospace;
+	margin: auto;
+	max-width: 105ch;
+	padding: 1em 0.5em;
+	font-size: 1.3em;
+	line-height: 1.75em;
+	color: var(--grey);
+}
+
+img {width: 100%;}
+
+/* Optional 100 more bytes */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--orange);
+  margin: 3em 0 1em;
+  font-size: calc(1.5rem + 3vw);
+}
+
+p,
+ul,
+ol {
+  color: var(--orange);
+  margin-bottom: 2em;
+}
+
+
+a{
+    text-decoration: none;
+}
+
+ul{
+    list-style: none;
+}
+
+*::-webkit-scrollbar {
+  width: .8rem;
+}
+ 
+*::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 .4rem rgba(0, 0, 0, 0.3);
+}
+ 
+*::-webkit-scrollbar-thumb {
+  background-color: darkgrey;
+  outline: .1rem solid slategrey;
+}
+
+/* Header */
+.header{
+    background-color: black;
+    position: sticky;
+    top: 0;
+    width: 100%;
+	z-index: 1;
+}
+
+.header-img-left{
+    float: left;
+    position: relative;
+    margin: 10px 15px 5px 10px;
+	height: 4em;
+	width: 4em;
+	border-radius: 4em;
+    opacity: .9;
+}
+
+.box-shadow {
+	box-shadow: 1px 1px 5px 0px var(--grey);
+}
+
+/* Logo */
+.header-image-container{
+	background-color: transparent;
+}
+
+
 body {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 100;
 }
 
 .bg {
@@ -84,19 +177,6 @@ td{
 
 section{
   margin: 50px;
-}
-
-
-/* for custom scrollbar for webkit browser*/
-
-::-webkit-scrollbar {
-    width: 6px;
-}
-::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
-}
-::-webkit-scrollbar-thumb {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
 }
 
 
@@ -193,6 +273,17 @@ section{
   transform: translateY(0);
 }
 
+.create-record {
+  width: 100%;
+  background-color: var(--orange);
+  color: white;
+  padding: 14px 20px;
+  margin-top: 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
 #radioButtons{
   margin: 5px 0 10px 0;
 }
@@ -215,16 +306,17 @@ input[type=text], select {
 input[type=text]:focus {
   border: 3px solid #555;
 }
-
-.create-record {
-  width: 100%;
-  background-color: var(--orange);
-  color: white;
-  padding: 14px 20px;
-  margin-top: 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
+input{
+    width:100%;
+    border:2px solid #aaa;
+    border-radius:4px;
+    margin:8px 0;
+    outline:none;
+    padding:8px;
+    box-sizing:border-box;
+	background-color: #0000002b;
+	color: #ffb900a6;
+	transition: .3s;
 }
 
 input:focus {
