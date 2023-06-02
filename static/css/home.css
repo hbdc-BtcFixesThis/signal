@@ -1,6 +1,6 @@
 :root{
     --white: #f9f9f9;
-    --nav-black: #000000ad;
+    --nav-black: #00000082;
     --grey: #85888C;
 	--orange: #ff990078;
 	--icon_size: 2em;
@@ -25,34 +25,6 @@ html {
 
 img {width: 100%;}
 
-/* Optional 100 more bytes */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--orange);
-  margin: 3em 0 1em;
-  font-size: calc(1.5rem + 3vw);
-}
-
-p,
-ul,
-ol {
-  color: var(--orange);
-  margin-bottom: 2em;
-}
-
-
-a{
-    text-decoration: none;
-}
-
-ul{
-    list-style: none;
-}
-
 *::-webkit-scrollbar {
   width: .8rem;
 }
@@ -68,7 +40,7 @@ ul{
 
 /* Header */
 .header{
-    background-color: black;
+    background-color: var(--nav-black);
     position: sticky;
     top: 0;
     width: 100%;
@@ -79,9 +51,9 @@ ul{
     float: left;
     position: relative;
     margin: 10px 15px 5px 10px;
-	height: 4em;
-	width: 4em;
-	border-radius: 4em;
+	height: 4rem;
+	width: 4rem;
+	border-radius: 4rem;
     opacity: .9;
 }
 
@@ -119,31 +91,6 @@ body {
   min-height: 50%;
 }
 
-/* ========== DEMO STYLES ========== */
-@font-face {
-  font-family: "Open Sans";
-  font-style: normal;
-  font-weight: 400;
-}
-
-/* ===== Demo Styles ===== */
-.infobox {
-  font-family: "Open Sans";
-  font-weight: 400;
-  font-size: 14px;
-  color: #323232;
-  width: 650px;
-  height: auto;
-  margin: 10% auto;
-  padding: 10px;
-  opacity: 0.80;
-  background-color: #c5c5c5;
-  border: 1px solid #f5f5f5;
-  border-radius: 15px;
-  -webkit-box-shadow: 0px 0px 10px 0px #f5f5f5;
-  box-shadow: 0px 0px 10px 0px #f5f5f5;
-}
-
 table{
   width:100%;
   table-layout: fixed;
@@ -152,26 +99,26 @@ table{
   background-color: rgba(255,255,255,0.3);
  }
 .tbl-content{
-  height:300px;
+  height:30rem;
   overflow-x:auto;
   margin-top: 0px;
   border: 1px solid rgba(255,255,255,0.3);
 }
 th{
-  padding: 20px 15px;
+  padding: .8rem;
   text-align: left;
   font-weight: 500;
-  font-size: 12px;
-  color: #fff;
+  font-size: 1em;
+  color: white;
   text-transform: uppercase;
 }
 td{
-  padding: 15px;
+  padding: .8rem;
   text-align: left;
   vertical-align:middle;
   font-weight: 300;
-  font-size: 12px;
-  color: #fff;
+  font-size: .8rem;
+  color: white;
   border-bottom: solid 1px rgba(255,255,255,0.1);
 }
 
@@ -284,10 +231,6 @@ section{
   cursor: pointer;
 }
 
-#radioButtons{
-  margin: 5px 0 10px 0;
-}
-
 input[type=text], select {
   width: 100%;
   padding: 12px 20px;
@@ -320,15 +263,17 @@ input{
 }
 
 input:focus {
-  outline: none !important;
-  border:1px solid red;
-  box-shadow: 0 0 10px var(--orange);
+	outline: none !important;
+	border:1px solid red;
+	box-shadow: 0 0 10px var(--orange);
 }
 
 textarea:focus {
-  outline: none !important;
-  border-color: #719ECE;
-  box-shadow: 0 0 10px var(--orange);
+	outline: none !important;
+	border-color: #719ECE;
+	box-shadow: 0 0 10px var(--orange);
+    outline-width: 0;
+  	border: 1px solid #ccc;
 }
 
 textarea {
@@ -344,10 +289,4 @@ textarea {
   color: #ffb900a6;
   padding: 5px 8px;
   transition: background-color 0.2s ease 0s;
-}
-
-
-textarea:focus {
-    outline-width: 0;
-  	border: 1px solid #ccc;
 }

@@ -136,15 +136,15 @@
 
 
 .gear {
-  display: inline-block;
-  position: relative;
-  margin: calc(var(--icon_size)/5);
-  width: var(--icon_size);
-  height: var(--icon_size);
-  background: var(--nav-black);
-  border-radius: 50%;
-  border: calc(var(--icon_size)/3.5) solid gray;
-  box-sizing: border-box;
+	display: inline-block;
+	position: relative;
+	margin: calc(var(--icon_size)/5);
+	width: var(--icon_size);
+	height: var(--icon_size);
+	background: var(--nav-black);
+	border-radius: 50%;
+	border: calc(var(--icon_size)/3.5) solid gray;
+	box-sizing: border-box;
 }
 
 .gear:before,
