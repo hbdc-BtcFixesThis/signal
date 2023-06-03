@@ -21,14 +21,6 @@ type ServerConfig struct {
 
 func NewServerConfig() (*ServerConfig, error) {
 	// gen certs if none are found (updates to cert files get picked up automatically)
-	err := CheckTLSKeyCertPath(defaultCrtPath, defaultKeyPath)
-	if err != nil {
-		fmt.Println(err)
-		err = GenerateTLSKeyCert(defaultCrtPath, defaultKeyPath, "0.0.0.0"+defaultPort)
-		if err != nil {
-			return nil, err
-		}
-	}
 	return &ServerConfig{
 		port:  defaultPort,
 		uiDir: "static",
@@ -38,6 +30,18 @@ func NewServerConfig() (*ServerConfig, error) {
 func (sc *ServerConfig) Port() string { return sc.port }
 
 func (sc *ServerConfig) PathToWebUI() string { return sc.uiDir }
+
+func genNewCertsIfNotFound() error {
+	err := CheckTLSKeyCertPath(defaultCrtPath, defaultKeyPath)
+	if err != nil {
+		fmt.Println(err)
+		err = GenerateTLSKeyCert(defaultCrtPath, defaultKeyPath, "0.0.0.0"+defaultPort)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 func (sc ServerConfig) TLSConf() *tls.Config {
 	return &tls.Config{
@@ -52,6 +56,9 @@ func (sc ServerConfig) TLSConf() *tls.Config {
 		},
 		GetCertificate: func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
 			// Always get latest signal.crt and signal.key
+			if err := genNewCertsIfNotFound(); err != nil {
+				return nil, err
+			}
 			cert, err := tls.LoadX509KeyPair(defaultCrtPath, defaultKeyPath)
 			if err != nil {
 				return nil, err
