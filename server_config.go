@@ -1,46 +1,62 @@
 package main
 
 import (
-	"flag"
-	"os/user"
-	"path/filepath"
-	//"os/signal"
+	"crypto/tls"
+	"fmt"
+)
+
+var (
+	defaultPort    = ":8888"
+	defaultCrtPath = "signal.crt.pem"
+	defaultKeyPath = "signal.key.pem"
 )
 
 type ServerConfig struct {
-	port           string
-	configFullPath string
-	uiDir          string
-}
-
-func defaultFilepath() (string, string, error) {
-	currentUser, err := user.Current()
-	if err != nil {
-		return "", "", err
-	}
-	fp := filepath.Join(currentUser.HomeDir, "lattice_cfg.json")
-	help := `path_to_conf:\n\tfull path, including filename, 
-	of the desired config. default: ` + fp
-	return fp, help, nil
+	port                string
+	uiDir               string
+	key                 string
+	isPublicNode        bool
+	maxStorageSizeBytes uint
 }
 
 func NewServerConfig() (*ServerConfig, error) {
-	defaultConfigFilepath, help, err := defaultFilepath()
+	// gen certs if none are found (updates to cert files get picked up automatically)
+	err := CheckTLSKeyCertPath(defaultCrtPath, defaultKeyPath)
 	if err != nil {
-		return &ServerConfig{}, err
+		fmt.Println(err)
+		err = GenerateTLSKeyCert(defaultCrtPath, defaultKeyPath, "0.0.0.0"+defaultPort)
+		if err != nil {
+			return nil, err
+		}
 	}
-	configFilepath := flag.String("path_to_conf", defaultConfigFilepath, help)
-	flag.Parse()
-
 	return &ServerConfig{
-		port:           ":8888",
-		configFullPath: *configFilepath,
-		uiDir:          "static",
+		port:  defaultPort,
+		uiDir: "static",
 	}, nil
 }
 
 func (sc *ServerConfig) Port() string { return sc.port }
 
-func (sc *ServerConfig) PathToConfig() string { return sc.configFullPath }
-
 func (sc *ServerConfig) PathToWebUI() string { return sc.uiDir }
+
+func (sc ServerConfig) TLSConf() *tls.Config {
+	return &tls.Config{
+		MinVersion:               tls.VersionTLS12,
+		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
+		PreferServerCipherSuites: true,
+		CipherSuites: []uint16{
+			tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,
+			tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
+			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
+		},
+		GetCertificate: func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+			// Always get latest signal.crt and signal.key
+			cert, err := tls.LoadX509KeyPair(defaultCrtPath, defaultKeyPath)
+			if err != nil {
+				return nil, err
+			}
+			return &cert, nil
+		},
+	}
+}

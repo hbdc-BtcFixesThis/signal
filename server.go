@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"crypto/tls"
 	"encoding/json"
 	"io/fs"
 	"net/http"
@@ -76,7 +77,6 @@ func (ss *SignalServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ss *SignalServer) Run() {
-	fmt.Println("path to config:", ss.SC.PathToConfig())
 	fmt.Println("Visit http://0.0.0.0" + ss.SC.Port())
 
 	defer ss.DB.Close()
@@ -88,11 +88,13 @@ func (ss *SignalServer) Run() {
 		ReadTimeout:    time.Second * 10,
 		WriteTimeout:   time.Second * 10,
 		MaxHeaderBytes: 1 << 20,
+		TLSConfig:      ss.SC.TLSConf(),
+		TLSNextProto:   make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
 
 	errc := make(chan error, 1)
 	go func() {
-		errc <- s.ListenAndServe()
+		errc <- s.ListenAndServeTLS("", "")
 	}()
 
 	sigs := make(chan os.Signal, 1)
@@ -110,7 +112,6 @@ func (ss *SignalServer) Run() {
 	if err := s.Shutdown(ctx); err != nil {
 		log.Fatal(err)
 	}
-
 }
 
 func (ss *SignalServer) getPageHandler(w http.ResponseWriter, r *http.Request) {
