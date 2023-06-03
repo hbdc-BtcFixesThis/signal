@@ -1,9 +1,7 @@
 var results = {
 	'headers': [
 		{'key': 'id',           'display_header': 'Name'},
-		{'key': 'content',      'display_header': 'Content'},
 		{'key': 'signal',       'display_header': 'Signal'},
-		{'key': 'total_btc', 'display_header': 'Bitcoin'},
 	],
 	'signals': [
 	{

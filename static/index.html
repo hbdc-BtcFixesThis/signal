@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
 	<title>Bitcoin Alias</title>
 	<link rel="stylesheet" href="css/settings.css">
 	<link rel="stylesheet" href="css/home.css">
@@ -12,8 +13,8 @@
 </head>
 <body>
 
-	<div class="bg">
-		<img class="bg" src="images/2001_monolith.jpg" alt="Signal through the noise">
+	<div class="bg w100 h100">
+		<img class="bg w100 h100" src="images/2001_monolith.jpg" alt="Signal through the noise">
 	</div>
 
     <div class="banner-container" hidden>          
@@ -33,7 +34,7 @@
       </div>
     </div>
 
-	<header class="header box-shadow">
+	<header class="header box-shadow w100">
 		<div class="auth" id="admin-key">
 			<button class="header-image-container" id="unlock">
 				<img class="header-img-left"
@@ -158,7 +159,7 @@
 
 	<section id="results-table">
 	  <div class="tbl-header">
-		<table cellpadding="0" cellspacing="0" border="0">
+		<table cellpadding="0" cellspacing="0" border="0" class="w100">
 		  <thead>
 			<tr id="tbl-header-tr">
 			</tr>
@@ -166,11 +167,11 @@
 		</table>
 	  </div>
 	  <div class="tbl-content">
-		<table cellpadding="0" cellspacing="0" border="0">
+		<table cellpadding="0" cellspacing="0" border="0" class="w100">
 		  <tbody id="tbl-body-content">
 			<tr class="add-row">
-			  <td colspan="4">
-				<button class="button-5" role="button" id="create-record-trigger">+</button>
+			  <td colspan=2">
+				<button class="w100 orange-button" role="button" id="create-record-trigger">+</button>
 			  </td>
 			</tr>
 		  </tbody>
@@ -178,8 +179,8 @@
 	  </div>
 	</section>
 
-	<div class="modal" class="bg" id="create-record-modal">
-		<img class="bg" src="images/rabbithole.jpg" alt="Signal through the noise">
+	<div class="modal w100 h100" id="create-record-modal">
+		<img class="bg w100 h100" src="images/rabbithole.jpg" alt="Signal through the noise">
 		<div class="modal-content box-shadow">
 			<span class="close-button" id="cancel-create-trigger">×</span>
 			<form name="broadcast">	
@@ -247,7 +248,7 @@
 					</div>
 				</div--!>
 					
-				<button class="create-record" id="submit-create-record">Broadcast</button>
+				<button class="w100 orange-button" id="submit-create-record">Broadcast</button>
 			</form>
 		</div>
 	</div>

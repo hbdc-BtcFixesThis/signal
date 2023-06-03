@@ -14,6 +14,7 @@
 .settings-storage {
 	width: 50%;
 }
+
 .select-dropdown {
 	position: relative;
 	border-radius: 4px;
@@ -64,65 +65,26 @@
 	padding: .8rem;
 }
 
-.settings-bitcoin::before {
-	content: "";
-	background-image: url('/images/compass.jpg');
-    opacity: .65;
-    z-index: -1;
-    height: 100%;
-	width: 100%;
-    background-size: 100% 100%;
-	position: absolute;
-	box-shadow: inset 0px 0px 50px 20px black;
-}
-
+.settings-auth::before,
+.settings-bitcoin::before,
+.settings-data-path::before,
+.settings-peers::before,
 .settings-storage::before {    
 	content: "";
-	background-image: url('/images/machine.jpg');
-    opacity: .65;
-    z-index: -1;
-    height: 100%;
+	opacity: .65;
+	z-index: -1;
+	height: 100%;
 	width: 100%;
-    background-size: 100% 100%;
+	background-size: 100% 100%;
 	position: absolute;
 	box-shadow: inset 0px 0px 50px 20px black;
 }
 
-.settings-peers::before {
-	content: "";
-	background-image: url('/images/lattice.jpg');
-    opacity: .65;
-    z-index: -1;
-    height: 100%;
-	width: 100%;
-    background-size: 100% 100%;
-	position: absolute;
-	box-shadow: inset 0px 0px 50px 20px black;
-}
-
-.settings-auth::before {
-	content: "";
-	background-image: url('/images/key.jpg');
-    opacity: .65;
-    z-index: -1;
-    height: 100%;
-	width: 100%;
-    background-size: 100% 100%;
-	position: absolute;
-	box-shadow: inset 0px 0px 50px 20px black;
-}
-
-.settings-data-path::before {
-	content: "";
-	background-image: url('/images/rabbithole.jpg');
-    opacity: .65;
-    z-index: -1;
-    height: 100%;
-	width: 100%;
-    background-size: 100% 100%;
-	position: absolute;
-	box-shadow: inset 0px 0px 50px 20px black;
-}
+.settings-auth::before {background-image: url('/images/key.jpg');}
+.settings-bitcoin::before {background-image: url('/images/compass.jpg');}
+.settings-data-path::before {background-image: url('/images/lattice.jpg');}
+.settings-peers::before {background-image: url('/images/rabbithole.jpg');}
+.settings-storage::before {background-image: url('/images/machine.jpg');}
 
 .expand-settings {
 	width: 100%;
@@ -133,7 +95,6 @@
 	background-color: transparent;
     height: 4rem;
 }
-
 
 .gear {
 	display: inline-block;
