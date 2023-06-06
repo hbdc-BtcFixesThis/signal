@@ -36,7 +36,7 @@ func (ss *SignalServer) initBuckets() error {
 func main() {
 	log.SetFlags(0)
 
-	sc, err := NewServerConfig()
+	sc, err := NewServerConf()
 	if err != nil {
 		log.Fatal("ERROR:", err)
 	}

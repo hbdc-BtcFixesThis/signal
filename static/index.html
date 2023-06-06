@@ -1,9 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+	<title>Signal through the noise</title>
+	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
-	<title>Bitcoin Alias</title>
 	<link rel="stylesheet" href="css/settings.css">
 	<link rel="stylesheet" href="css/home.css">
 	<link rel="stylesheet" href="css/loading.css">
@@ -157,27 +158,49 @@
 		</div>
     </header>
 
-	<section id="results-table">
-	  <div class="tbl-header">
-		<table cellpadding="0" cellspacing="0" border="0" class="w100">
-		  <thead>
-			<tr id="tbl-header-tr">
-			</tr>
-		  </thead>
-		</table>
-	  </div>
-	  <div class="tbl-content">
-		<table cellpadding="0" cellspacing="0" border="0" class="w100">
-		  <tbody id="tbl-body-content">
-			<tr class="add-row">
-			  <td colspan=2">
-				<button class="w100 orange-button" role="button" id="create-record-trigger">+</button>
-			  </td>
-			</tr>
-		  </tbody>
-		</table>
-	  </div>
-	</section>
+	<div class="dflex w100">
+		<div id="results-table" class="results-table">
+		  <div class="tbl-header">
+			<table cellpadding="0" cellspacing="0" border="0" class="w100">
+			  <thead>
+				<tr id="tbl-header-tr">
+				</tr>
+			  </thead>
+			</table>
+		  </div>
+		  <div class="tbl-content">
+			<table cellpadding="0" cellspacing="0" border="0" class="w100">
+			  <tbody id="tbl-body-content">
+				<tr class="add-row">
+				  <td colspan=2">
+					<button class="w100 orange-button" role="button" id="create-record-trigger">+</button>
+				  </td>
+				</tr>
+			  </tbody>
+			</table>
+		  </div>
+		</div>
+		<div id="result-details" class="result-details">
+		  <div class="tbl-header">
+			<table cellpadding="0" cellspacing="0" border="0" class="w100">
+			  <thead>
+				<tr id="tbl-header-tr"><th>Name</th><th>Signal</th></tr>
+			  </thead>
+			</table>
+		  </div>
+		  <div class="tbl-content">
+			<table cellpadding="0" cellspacing="0" border="0" class="w100">
+			  <tbody id="tbl-body-content">
+				<tr class="add-row">
+				  <td colspan=2">
+					<button class="w100 orange-button" role="button" id="create-record-trigger">+</button>
+				  </td>
+				</tr>
+			  </tbody>
+			</table>
+		  </div>
+		</div>
+	</div>
 
 	<div class="modal w100 h100" id="create-record-modal">
 		<img class="bg w100 h100" src="images/rabbithole.jpg" alt="Signal through the noise">

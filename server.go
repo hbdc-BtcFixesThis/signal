@@ -40,17 +40,16 @@ type SignalServer struct {
 	// serveMux routes the various endpoints to the appropriate handler.
 	serveMux http.ServeMux
 	DB       *bolt.DB
-	SC       *ServerConfig
+	SC       *ServerConf
 
 	// subscribersMu sync.Mutex
 	// subscribers   map[*subscriber]struct{}
 }
 
-// newChatServer constructs a chatServer with the defaults.
-func newSignalServer(sc *ServerConfig) *SignalServer {
+func newSignalServer(sc *ServerConf) *SignalServer {
 	// Open the my.db data file in your current directory.
 	// It will be created if it doesn't exist.
-	db, err := bolt.Open("my.db", 0600, &bolt.Options{Timeout: 1 * time.Second})
+	db, err := bolt.Open(sc.PathToDB(), 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -11,10 +11,7 @@
 	width: 100%
 }
 
-.settings-storage {
-	width: 50%;
-}
-
+.settings-storage {width: 50%;}
 .select-dropdown {
 	position: relative;
 	border-radius: 4px;
@@ -22,18 +19,13 @@
 	padding: 0.5em;
 	align-items: baseline;
 }
-.select-dropdown select {
-	padding: 8px 8px 8px 10px;
-}
+.select-dropdown select {padding: 8px 8px 8px 10px;}
 .select-dropdown select:active, .select-dropdown select:focus {
 	outline: none;
 	box-shadow: none;
 }
 
-.storage-space-left {
-	margin: .5em 1em 1em 1em;
-}
-
+.storage-space-left {margin: .5em 1em 1em 1em}
 .storage-space-units {
 	width: 50%;
     color: var(--orange);;
@@ -61,10 +53,7 @@
 	scroll-snap-align: start;
 }
 
-.settings-content {
-	padding: .8rem;
-}
-
+.settings-content {padding: .8rem;}
 .settings-auth::before,
 .settings-bitcoin::before,
 .settings-data-path::before,
@@ -122,6 +111,4 @@
     color: gray;
 }
 
-.gear:after {
-	transform: translate(-50%,-50%) rotate(45deg);
-}
+.gear:after {transform: translate(-50%,-50%) rotate(45deg);}

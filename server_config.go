@@ -3,39 +3,53 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"sync"
+	"time"
+
+	bolt "go.etcd.io/bbolt"
 )
 
-var (
-	defaultPort    = ":8888"
-	defaultCrtPath = "signal.crt.pem"
-	defaultKeyPath = "signal.key.pem"
-)
-
-type ServerConfig struct {
-	port                string
-	uiDir               string
-	key                 string
-	isPublicNode        bool
-	maxStorageSizeBytes uint
+// maybe a bit unorthodox but too be able to
+// update settings from the ui a seperate db
+// that lives in the same dir as the server
+// will be used to access, update, and persist
+// settings set by users. This also makes it
+// easier to update these in real time
+type ServerConf struct {
+	DB       *bolt.DB
+	settings *SignalSettings
+	sync.RWMutex
 }
 
-func NewServerConfig() (*ServerConfig, error) {
+var defaultPathToServerConf = "signal_conf.db"
+
+func NewServerConf() (*ServerConf, error) {
 	// gen certs if none are found (updates to cert files get picked up automatically)
-	return &ServerConfig{
-		port:  defaultPort,
-		uiDir: "static",
-	}, nil
+	db, err := bolt.Open(defaultPathToServerConf, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	if err != nil {
+		return nil, err
+	}
+
+	settings, err := LoadSettings(db)
+	if err != nil {
+		return nil, err
+	}
+	return &ServerConf{settings: settings, DB: db}, nil
 }
 
-func (sc *ServerConfig) Port() string { return sc.port }
+func (sc *ServerConf) Port() string { return sc.settings.Port }
 
-func (sc *ServerConfig) PathToWebUI() string { return sc.uiDir }
+func (sc *ServerConf) PathToWebUI() string { return sc.settings.UiDir }
 
-func genNewCertsIfNotFound() error {
+func (sc *ServerConf) PathToDB() string { return sc.settings.DbPath }
+
+func (sc *ServerConf) genNewCertsIfNotFound() error {
+	defaultCrtPath := sc.settings.TlsCrtPath
+	defaultKeyPath := sc.settings.TlsKeyPath
 	err := CheckTLSKeyCertPath(defaultCrtPath, defaultKeyPath)
 	if err != nil {
 		fmt.Println(err)
-		err = GenerateTLSKeyCert(defaultCrtPath, defaultKeyPath, "0.0.0.0"+defaultPort)
+		err = GenerateTLSKeyCert(defaultCrtPath, defaultKeyPath, "0.0.0.0"+sc.settings.Port)
 		if err != nil {
 			return err
 		}
@@ -43,7 +57,7 @@ func genNewCertsIfNotFound() error {
 	return nil
 }
 
-func (sc ServerConfig) TLSConf() *tls.Config {
+func (sc ServerConf) TLSConf() *tls.Config {
 	return &tls.Config{
 		MinVersion:               tls.VersionTLS12,
 		CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
@@ -56,10 +70,10 @@ func (sc ServerConfig) TLSConf() *tls.Config {
 		},
 		GetCertificate: func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
 			// Always get latest signal.crt and signal.key
-			if err := genNewCertsIfNotFound(); err != nil {
+			if err := sc.genNewCertsIfNotFound(); err != nil {
 				return nil, err
 			}
-			cert, err := tls.LoadX509KeyPair(defaultCrtPath, defaultKeyPath)
+			cert, err := tls.LoadX509KeyPair(sc.settings.TlsCrtPath, sc.settings.TlsKeyPath)
 			if err != nil {
 				return nil, err
 			}

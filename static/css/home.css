@@ -35,7 +35,21 @@ img {width: 100%;}
 section{margin: 50px;}
 table {table-layout: fixed;}
 
+.dflex {
+	display: flex;
+	flex-wrap: wrap;
+}
+.dflex > div {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	margin:2%;
+	max-width: 97%;
+	max-height: 80vh;
+}
 .tbl-header{background-color: rgba(255,255,255,0.3);}
+.result-details {width: 20rem;}
+.results-table {width: 12rem;}
 .tbl-content{
 	height:30rem;
 	overflow-x:auto;
