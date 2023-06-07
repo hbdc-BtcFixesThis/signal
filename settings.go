@@ -1,8 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+
+	"encoding/json"
 
 	bolt "go.etcd.io/bbolt"
 )
@@ -30,40 +31,33 @@ func LoadSettings(db *bolt.DB) (*SignalSettings, error) {
 	err := db.Update(func(tx *bolt.Tx) error {
 		b, err := tx.CreateBucketIfNotExists(settingsBucketName)
 		if err != nil {
-			fmt.Println("4")
 			return err
 		}
 
 		settingsBytes := b.Get(settingsDBRecordKey)
 		if err != nil {
-			fmt.Println("3")
 			return err
 		}
 
 		if settingsBytes == nil {
 			defaultSettings, err := defaultSettingsBytes()
 			if err != nil {
-				fmt.Println("2")
 				return err
 			}
 			b.Put(settingsDBRecordKey, defaultSettings)
 			// this is a bit redundant since the settings
 			// were just saved but this only happens when
-			// settings are updated and at startup. Since
+			// settings are set for the first time. Since
 			// this method will be accessed infrequently
 			// retrieving the settings after saving could
 			// help detect issues dispite the extra lookup
 			settingsBytes = b.Get(settingsDBRecordKey)
 		}
 		err = json.Unmarshal(settingsBytes, &settings)
-		fmt.Println(err)
-
-		fmt.Println(string(settingsBytes))
 		return err
 	})
 
 	if err != nil {
-		fmt.Println("1")
 		return nil, err
 	}
 
@@ -73,8 +67,9 @@ func LoadSettings(db *bolt.DB) (*SignalSettings, error) {
 func defaultSettingsBytes() ([]byte, error) {
 	// only called when new settings conf is being generated
 	pw, err := GenRandStr(defaultPasswordLen)
-	fmt.Println("\n\t--No config found! A new one has been created.\n")
-	fmt.Printf("To access and update settings a pw has been generated\n\n\t%s\n\n", pw)
+	fmt.Println("\n\t--No config found! A new one has been created.")
+	fmt.Println("To access and update settings a pw has been generated.")
+	fmt.Printf("\n\n\tpassword: %s\nFeel free to change this password anytime.\n\n", pw)
 	if err != nil {
 		return nil, err
 	}

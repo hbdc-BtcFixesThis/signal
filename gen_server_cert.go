@@ -106,7 +106,7 @@ func GenerateTLSKeyCert(certPath string, keyPath string, host string) error {
 
 	template := x509.Certificate{
 		SerialNumber:          serialNumber,
-		Subject:               pkix.Name{Organization: []string{"Acme Co"}},
+		Subject:               pkix.Name{Organization: []string{"Bitcoin Signal"}},
 		NotBefore:             notBefore,
 		NotAfter:              notAfter,
 		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,

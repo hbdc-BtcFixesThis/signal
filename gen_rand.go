@@ -9,7 +9,7 @@ import (
 )
 
 func GenRandStr(n int) (string, error) {
-	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"
+	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 	ret := make([]byte, n)
 	for i := 0; i < n; i++ {
 		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
@@ -25,6 +25,5 @@ func GenRandStr(n int) (string, error) {
 func SHA256(str string) string {
 	h := sha256.New()
 	h.Write([]byte(str))
-	hash := fmt.Sprintf("%x", h.Sum(nil))
-	return hash
+	return fmt.Sprintf("%x", h.Sum(nil))
 }

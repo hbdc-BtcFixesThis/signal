@@ -1,20 +1,20 @@
 package main
 
 import (
-	"crypto/tls"
-	"fmt"
 	"sync"
 	"time"
+
+	"crypto/tls"
 
 	bolt "go.etcd.io/bbolt"
 )
 
-// maybe a bit unorthodox but too be able to
-// update settings from the ui a seperate db
+// maybe a bit unorthodox but for be able to
+// update settings via the ui a seperate db
 // that lives in the same dir as the server
 // will be used to access, update, and persist
 // settings set by users. This also makes it
-// easier to update these in real time
+// easier to update settings in real time
 type ServerConf struct {
 	DB       *bolt.DB
 	settings *SignalSettings
@@ -48,8 +48,7 @@ func (sc *ServerConf) genNewCertsIfNotFound() error {
 	defaultKeyPath := sc.settings.TlsKeyPath
 	err := CheckTLSKeyCertPath(defaultCrtPath, defaultKeyPath)
 	if err != nil {
-		fmt.Println(err)
-		err = GenerateTLSKeyCert(defaultCrtPath, defaultKeyPath, "0.0.0.0"+sc.settings.Port)
+		err = GenerateTLSKeyCert(defaultCrtPath, defaultKeyPath, "0.0.0.0,localhost,127.0.0.1,::1")
 		if err != nil {
 			return err
 		}
