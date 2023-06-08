@@ -1,0 +1,233 @@
+.center {
+  text-align: center;
+}
+
+hr {
+  width: 200px;
+  border: 1px solid #2E3C43;
+  position: relative;
+  margin: 50px auto;
+}
+
+hr::before {
+  content: '***';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  padding: 10px;
+  background: #263238;
+  display: block;
+  color: #607D8B;
+}
+
+.showcase {
+  padding: 15px;
+  text-align: center;
+  position: relative;
+}
+
+.math {
+  font-family: 'Roboto Slab', serif;
+}
+
+.math .small {
+  font-size: 0.7em;
+}
+
+.math .frac {
+  display: inline-flex;
+  vertical-align: middle;
+  flex-direction: column;
+  text-align: center;
+  margin-top: -1px;
+}
+
+.math .frac > *:first-child {
+  border-bottom: 2px solid currentColor;
+  padding-bottom: 5px;
+}
+
+.math .frac > *:last-child {
+  padding-top: 5px;
+}
+
+.math .frac > * {
+  padding: 0 0.5em;
+}
+
+.math .sqrt {
+  border-top: 2px solid currentColor;
+  margin-left: 10px;
+  padding-left: 5px;
+  position: relative;
+  display: inline-block;
+}
+
+.math .sqrt::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -10px;
+  bottom: 0px;
+  width: 10px;
+  background: currentColor;
+  clip-path: polygon(
+    0 50%,
+    2px 50%,
+    50% calc(100% - 2px),
+    calc(100% - 2px) 0,
+    100% 0,
+    100% 2px,
+    calc(50% + 2px) 100%,
+    calc(50% - 2px) 100%,
+    0 calc(50% + 2px)
+  );
+}
+
+.surround {
+  padding: 0 10px;
+  position: relative;
+  display: inline-block;
+  --round: 5px;
+  --off: 0;
+}
+
+.surround::before {
+  content: '';
+  width: 5px;
+  position: absolute;
+  top: 0px;
+  left: var(--off);
+  bottom: 0px;
+  width: 5px;
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  border-top-left-radius: var(--round);
+  border-bottom-left-radius: var(--round);
+}
+
+.surround::after {
+  content: '';
+  width: 5px;
+  position: absolute;
+  top: 0px;
+  right: var(--off);
+  bottom: 0px;
+  width: 5px;
+  border-top: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  border-top-right-radius: var(--round);
+  border-bottom-right-radius: var(--round);
+}
+
+.surround.round {
+  --round: 10px 30px;
+}
+
+.surround.square {
+  --round: 0;
+}
+
+.surround.curly {
+  --round: 10px;
+  --off: 5px;
+  padding: 0 15px;
+  background-image: 
+    linear-gradient(0deg, currentColor 25%, currentColor 25%),
+    linear-gradient(0deg, currentColor 25%, currentColor 25%);
+  background-repeat: no-repeat;
+  background-size: 5px 2px;
+  background-position: 0 center, 100% center;
+}
+
+.surround.sys {
+  --round: 10px;
+  --off: 5px;
+  padding: 0 15px;
+  background-image: 
+    linear-gradient(0deg, currentColor 25%, currentColor 25%);
+  background-repeat: no-repeat;
+  background-size: 5px 2px;
+  background-position: 0 center;
+}
+
+.surround.sys::after {
+  content: unset;
+}
+
+.cs {
+  position: relative;
+  display: inline-block;
+}
+
+.cs > sup {
+  position: absolute;
+  bottom: calc(100% - 10px);
+  left: 50%;
+  transform: translate(-50%);
+  width: max-content;
+}
+
+.cs > sub {
+  position: absolute;
+  top: calc(100% - 5px);
+  left: 50%;
+  transform: translate(-50%);
+  width: max-content;
+}
+
+.big {
+  font-size: 2em;
+  font-weight: 200;
+}
+
+.arrow {
+  position: relative;
+}
+
+.arrow::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: currentColor;
+}
+
+.arrow::after {
+  content: '';
+  position: absolute;
+  bottom: calc(100% - 1px);
+  right: -1px;
+  height: 5px;
+  width: 5px;
+  border-top: 2px solid currentColor;
+  border-right: 2px solid currentColor;
+  transform-origin: top right;
+  transform: rotate(45deg);
+}
+
+.surround.vec {
+  display: inline-flex;
+  flex-direction: column;
+  vertical-align: middle;
+}
+
+.matrix {
+  display: inline-grid;
+  grid-template-columns: repeat(var(--c), 1fr);
+  grid-gap: 5px;
+  padding: 5px 15px;
+  vertical-align: middle;
+}
+
+.annot {
+  color: #607D8B;
+  position: absolute;
+  right: 15px;
+  top: calc(50% - 0.5em);
+}

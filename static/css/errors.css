@@ -1,0 +1,50 @@
+.banner-container{
+	z-index: 999999;
+    margin-top: 0px;
+    position: absolute;
+    right:0;
+	width: 100%;
+}
+
+.banner-notice{
+  margin:5px; /* Make sure to keep some distance from all sides */
+}
+
+.banner{
+  width:80%;
+  padding:20px;
+  border:3px solid #75010185;
+  border-left-width:5px;
+  border-radius: 12px;
+  margin:10px auto;
+  font-family: 'Open Sans', sans-serif;
+  font-size: 18px;
+  color: var(--orange);
+}
+
+
+.banner-text-margin {margin-right: 12px;}
+.banner-error strong {color: #c40600;}
+.banner-warning strong {color:#f0ad4e;}
+.banner-info strong {color: #5bc0de;}
+.banner-success strong {color: #2b542c;}
+
+.banner-error{
+  border-left-color: #c40600;
+  background-color: #000000d4;
+}
+
+.banner-warning{
+  border-left-color: #f0ad4e;
+  background-color: #000000d4;
+}
+
+.banner-info {
+  border-left-color: #5bc0de;
+  background-color: #000000d4;
+}
+
+.banner-success {
+  border-left-color: #2b542c;
+  background-color: #000000d4;
+}
