@@ -1,6 +1,12 @@
 var loadingClassName = 'loading';
 var regexLoadingClassStr = '(?:^|\\s)'+ loadingClassName + '(?!\\S)';
 
+function objectToEncodedQueryString(params) {
+	return Object.keys(params).map((key) => {
+		return encodeURIComponent(key) + '=' + encodeURIComponent(params[key])
+	}).join('&');
+}
+
 function removeLoadingClass(elem) {
 	elem.className = elem.className.replace(new RegExp(regexLoadingClassStr), '');
 }
@@ -10,9 +16,9 @@ function addLoadingClass(elem) {
 	// setTimeout(removeLoadingClass, 2000, elem);
 }
 
-function sendJsonPost(path, data, success, fail) {
+function sendJsonPost(path, method, data, success, fail) {
 	const xhr = new XMLHttpRequest();
-	xhr.open("POST", routes.createRecord);
+	xhr.open(method, path);
 
 	// Send the proper header information along with the request
 	xhr.setRequestHeader("Content-Type", "application/json");

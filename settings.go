@@ -67,9 +67,31 @@ func LoadSettings(db *bolt.DB) (*SignalSettings, error) {
 func defaultSettingsBytes() ([]byte, error) {
 	// only called when new settings conf is being generated
 	pw, err := GenRandStr(defaultPasswordLen)
-	fmt.Println("\n\t--No config found! A new one has been created.")
-	fmt.Println("To access and update settings a pw has been generated.")
-	fmt.Printf("\n\n\tpassword: %s\nFeel free to change this password anytime.\n\n", pw)
+	fmt.Printf(`
+
+		------ No config found! ------
+
+		A new one has been generated for you. To access and update your settings,
+		including the password gennerated below, visit https://localhost:8888 on
+		your prefered browser and use the following pw:
+
+		########################################################
+		####                                                ####
+		####        password: %s%s
+		####                                                ####
+		########################################################
+
+		In the event that you would like to reset your settings to their defaults
+		you can do so by deleting the file signal_conf.db and restarting the
+		process again. This will regenerate a conf file as well as a new password.
+
+
+		NOTE: The password above is stored as a hash. If you forget the password
+		above, or any future password/s set, you WILL NOT be able to retrieve them
+		here!
+
+
+`, pw, "          ####")
 	if err != nil {
 		return nil, err
 	}

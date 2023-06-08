@@ -98,7 +98,7 @@ broadcast.addEventListener('submit', (e)=> {
 	addLoadingClass(submitNewRecord);
 
 	// make request
-	sendJsonPost(routes.createRecord, {
+	sendJsonPost(routes.createRecord, "POST", {
 		name: recordState.name.value,
 		content: recordState.content.value,
 		address: recordState.address.value,

@@ -62,9 +62,12 @@ func newSignalServer(sc *ServerConf) *SignalServer {
 		// publishLimiter:          rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
 	}
 
-	// ss.serveMux.Handle("/", http.FileServer(http.Dir(".")))
 	fs, _ := fs.Sub(static, sc.PathToWebUI())
+
 	ss.serveMux.Handle("/", http.FileServer(http.FS(fs)))
+
+	// authenticated apis (settings)
+	ss.serveMux.Handle("/verify/token", checkAPIKey(http.HandlerFunc(ss.verifyHandler)))
 
 	ss.serveMux.HandleFunc("/data", ss.getPageHandler)
 

@@ -43,6 +43,8 @@ func (sc *ServerConf) PathToWebUI() string { return sc.settings.UiDir }
 
 func (sc *ServerConf) PathToDB() string { return sc.settings.DbPath }
 
+func (sc *ServerConf) PassHash() string { return sc.settings.PassHash }
+
 func (sc *ServerConf) genNewCertsIfNotFound() error {
 	defaultCrtPath := sc.settings.TlsCrtPath
 	defaultKeyPath := sc.settings.TlsKeyPath
