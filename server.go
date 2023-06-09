@@ -63,19 +63,30 @@ func newSignalServer(sc *ServerConf) *SignalServer {
 	}
 
 	fs, _ := fs.Sub(static, sc.PathToWebUI())
+	ck := ss.CheckAPIKey
+	jw := JSONResponseHeadersWrapper
 
 	ss.serveMux.Handle("/", http.FileServer(http.FS(fs)))
 
 	// authenticated apis (settings)
-	ss.serveMux.Handle("/verify/token", checkAPIKey(http.HandlerFunc(ss.verifyHandler)))
+	ss.serveMux.Handle("/verify/token", jw(ck(http.HandlerFunc(ss.verifyHandler))))
 
-	ss.serveMux.HandleFunc("/data", ss.getPageHandler)
+	// public
+	ss.serveMux.Handle("/data", jw(http.HandlerFunc(ss.getPageHandler)))
 
 	return ss
 }
 
 func (ss *SignalServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ss.serveMux.ServeHTTP(w, r)
+}
+
+func (ss *SignalServer) Respond(w http.ResponseWriter, r Response) {
+	if err := JSONResponse(w, r); err != nil {
+		status := http.StatusInternalServerError
+		JSONResponse(w, Response{StatusCode: status, Err: err.Error()})
+		return
+	}
 }
 
 func (ss *SignalServer) Run() {
@@ -132,8 +143,7 @@ func (ss *SignalServer) getPageHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		// w.WriteHeader(http.StatusCreated)
 		json.NewEncoder(w).Encode(pageResults)
 
 		return nil

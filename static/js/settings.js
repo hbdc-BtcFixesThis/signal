@@ -18,8 +18,10 @@ function show(e) {e.style.display = '';}
 function successfullyUnlocked(xhr) {
 	// todo: fill in vals from server
 	// todo: set browser state
-	if (JSON.parse(xhr.response).success) {
-		addLoadingClass(unlockButton);
+	resp = JSON.parse(xhr.response);
+	if (resp.status_code === 200) {
+		showSuccessBanner(resp.message);
+		removeLoadingClass(unlockButton);
 		hide(authContainer);
 		show(expandSettings);
 	} else {
@@ -29,7 +31,7 @@ function successfullyUnlocked(xhr) {
 
 function failedToUnlock(xhr) {
 	removeLoadingClass(unlockButton);
-	showErrorBanner(xhr.responseText);
+	showErrorBanner(JSON.parse(xhr.response).error);
 }
 
 // only show login at first
@@ -45,6 +47,7 @@ adminKey.addEventListener("keypress", (e)=> {
 
 unlock.addEventListener("click", (e)=> {
 	// e.preventDefault();
+	addLoadingClass(unlockButton);
 	path = routes.verifyAuthToken + "?" + objectToEncodedQueryString({
 		key: genToken(adminKey.value),
 	});
