@@ -33,9 +33,7 @@ let recordState = {
 	signatureMessage: document.getElementById('signal-signature-message'),
 };
 
-function toggleCreateRecordModal() {
-    createRecordModal.classList.toggle("show-modal");
-}
+function toggleCreateRecordModal() { toggleShowModal(createRecordModal); }
 
 function successfullyAddedRecord(xhr) {
     removeLoadingClass(submitNewRecord);

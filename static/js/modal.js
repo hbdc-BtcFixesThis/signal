@@ -4,4 +4,6 @@ function windowOnClick(event) {
     }
 }
 
+function toggleShowModal(modal) { modal.classList.toggle("show-modal"); }
+
 window.addEventListener("click", windowOnClick);

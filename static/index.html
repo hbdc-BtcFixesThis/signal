@@ -36,26 +36,12 @@
     </div>
 
 	<header class="header box-shadow w100">
-		<div class="auth" id="admin-key-container">
-			<button class="header-image-container" id="unlock">
-				<img class="header-img-left"
-					 src="images/key.jpg"
-					 alt="Signal through the noise">
-			</button>
-			<div class="admin-key">
-				<input type="text"
-					   id="admin-key"
-					   class="admin-key"
-					   name="admin-key"
-					   placeholder="Key">
-			</div>
-		</div>
 
 		<button class="expand-settings" id="expand-settings">
 			<div class="gear"></div>
 		</button>
 
-		<div id="settings" class="server-settings box-shadow" >
+		<div id="settings" class="server-settings box-shadow" style="display: none">
 			<div class="settings-storage">
 				<div class="settings-content">
 					<div id="percent-slider">
@@ -202,6 +188,27 @@
 		</div>
 	</div>
 
+	<div class="modal w100 h100" id="login-modal">
+		<img class="bg w100 h100" src="images/key.jpg">
+		<div class="modal-content box-shadow">
+			<span class="close-button" id="cancel-login">×</span>
+			<form name="broadcast">	
+				<input type="text"
+					   id="auth-user"
+					   class="admin-user"
+					   name="auth-user"
+					   placeholder="user">
+				<input type="text"
+					   id="auth-key"
+					   class="auth-key"
+					   name="auth-key"
+					   placeholder="key">
+					
+				<button class="w100 orange-button" id="unlock">Unlock</button>
+			</form>
+		</div>
+	</div>
+
 	<div class="modal w100 h100" id="create-record-modal">
 		<img class="bg w100 h100" src="images/rabbithole.jpg" alt="Signal through the noise">
 		<div class="modal-content box-shadow">
@@ -276,6 +283,7 @@
 		</div>
 	</div>
 </body>
+<script type="text/javascript" src="js/urls.js"></script>
 <script type="text/javascript" src="js/home.js"></script>
 <script type="text/javascript" src="js/settings.js"></script>
 <script type="text/javascript" src="js/errors.js"></script>
@@ -285,5 +293,4 @@
 <script type="text/javascript" src="js/hash.js"></script>
 <script type="text/javascript" src="js/request.js"></script>
 <script type="text/javascript" src="js/auth.js"></script>
-<script type="text/javascript" src="js/urls.js"></script>
 </html>
