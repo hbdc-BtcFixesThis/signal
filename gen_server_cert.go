@@ -22,8 +22,37 @@ var (
 	validFor   = 365 * 24 * time.Hour
 	isCA       = true
 	rsaBits    = 2048
-	ecdsaCurve = ""
+	ecdsaCurve = RSA
 )
+
+type EllipticCurve uint8
+
+const (
+	RSA EllipticCurve = iota
+	P224
+	P256
+	P384
+	P521
+)
+
+func (ec EllipticCurve) String() string { return [...]string{"", "P224", "P256", "P384", "P521"}[ec] }
+
+func (ec EllipticCurve) genKey() (interface{}, error) {
+	switch ec {
+	case RSA:
+		return rsa.GenerateKey(rand.Reader, rsaBits)
+	case P224:
+		return ecdsa.GenerateKey(elliptic.P224(), rand.Reader)
+	case P256:
+		return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+	case P384:
+		return ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
+	case P521:
+		return ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
+	default:
+		return nil, fmt.Errorf("Unrecognized elliptic curve: %s", ec.String())
+	}
+}
 
 func publicKey(priv interface{}) interface{} {
 	switch k := priv.(type) {
@@ -61,44 +90,53 @@ func CheckTLSKeyCertPath(certPath string, keyPath string) error {
 	return nil
 }
 
-func GenerateTLSKeyCert(certPath string, keyPath string, host string) error {
-	var priv interface{}
-	var err error
-	switch ecdsaCurve {
-	case "":
-		priv, err = rsa.GenerateKey(rand.Reader, rsaBits)
-	case "P224":
-		priv, err = ecdsa.GenerateKey(elliptic.P224(), rand.Reader)
-	case "P256":
-		priv, err = ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	case "P384":
-		priv, err = ecdsa.GenerateKey(elliptic.P384(), rand.Reader)
-	case "P521":
-		priv, err = ecdsa.GenerateKey(elliptic.P521(), rand.Reader)
-	default:
-		fmt.Fprintf(os.Stderr, "Unrecognized elliptic curve: %q", ecdsaCurve)
-		os.Exit(1)
-	}
-	if err != nil {
-		log.Printf("failed to generate private key: %s", err)
-		return err
-	}
-
+func notBeforeAfter() (time.Time, time.Time, error) {
 	var notBefore time.Time
+	var err error
 	if len(validFrom) == 0 {
 		notBefore = time.Now()
 	} else {
 		notBefore, err = time.Parse("Jan 3 00:00:00 2009", validFrom)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to parse creation date: %s\n", err)
-			return err
+			// err will be picked up and returned below
+			return notBefore, notBefore, err
 		}
 	}
 
-	notAfter := notBefore.Add(validFor)
+	return notBefore, notBefore.Add(validFor), nil
+}
 
+func serialNumber() (*big.Int, error) {
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
-	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
+	return rand.Int(rand.Reader, serialNumberLimit)
+}
+
+func save(path string, pemBlock *pem.Block) error {
+	out, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	if err != nil {
+		log.Printf("failed to open %s for writing: %s", path, err)
+		return err
+	}
+	pem.Encode(out, pemBlock)
+	out.Close()
+	log.Printf("written %s\n", path)
+	return nil
+}
+
+func GenerateTLSKeyCert(certPath string, keyPath string, host string) error {
+	priv, err := ecdsaCurve.genKey()
+	if err != nil {
+		log.Printf("failed to generate private key: %s", err)
+		return err
+	}
+
+	notBefore, notAfter, err := notBeforeAfter()
+	if err != nil {
+		log.Printf("Failed to parse creation date: %s\n", err)
+		return err
+	}
+
+	serialNumber, err := serialNumber()
 	if err != nil {
 		log.Printf("failed to generate serial number: %s", err)
 		return err
@@ -134,22 +172,9 @@ func GenerateTLSKeyCert(certPath string, keyPath string, host string) error {
 		return err
 	}
 
-	certOut, err := os.Create(certPath)
+	err = save(keyPath, pemBlockForKey(priv))
 	if err != nil {
-		log.Printf("failed to open %s for writing: %s", certPath, err)
 		return err
 	}
-	pem.Encode(certOut, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
-	certOut.Close()
-	log.Printf("written %s\n", certPath)
-
-	keyOut, err := os.OpenFile(keyPath, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		log.Print("failed to open "+keyPath+" for writing:", err)
-		return err
-	}
-	pem.Encode(keyOut, pemBlockForKey(priv))
-	keyOut.Close()
-	log.Printf("written %s\n", keyPath)
-	return nil
+	return save(certPath, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 }
