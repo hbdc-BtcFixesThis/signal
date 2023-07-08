@@ -1,8 +1,16 @@
 package main
 
 import (
+	"errors"
+	"os"
+
 	"encoding/json"
 	"net/http"
+	"path/filepath"
+)
+
+const (
+	SignalDirName = ".signal"
 )
 
 type Response struct {
@@ -23,4 +31,19 @@ func JSONResponseHeadersWrapper(h http.Handler) http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		h.ServeHTTP(w, r)
 	})
+}
+
+func SignalHomeDir() string {
+	path, err := GetCurrentUserHomeDir()
+	if err != nil {
+		return path
+	}
+	signalHomePath := filepath.Join(path, SignalDirName)
+	if _, err := os.Stat(signalHomePath); errors.Is(err, os.ErrNotExist) {
+		err := os.Mkdir(signalHomePath, os.ModePerm)
+		if err != nil {
+			return path
+		}
+	}
+	return signalHomePath
 }

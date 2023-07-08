@@ -1,29 +1,31 @@
 package main
 
 import (
-	"fmt"
-
 	"crypto/rand"
 	"crypto/sha256"
 	"math/big"
 )
 
-func GenRandStr(n int) (string, error) {
-	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+func GenRandStr(n int) ([]byte, error) {
+	const (
+		choices    = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+		numChoices = int64(len(choices))
+	)
+
 	ret := make([]byte, n)
 	for i := 0; i < n; i++ {
-		num, err := rand.Int(rand.Reader, big.NewInt(int64(len(letters))))
+		num, err := rand.Int(rand.Reader, big.NewInt(numChoices))
 		if err != nil {
-			return "", err
+			return []byte{}, err
 		}
-		ret[i] = letters[num.Int64()]
+		ret[i] = choices[num.Int64()]
 	}
 
-	return string(ret), nil
+	return ret, nil
 }
 
-func SHA256(str string) string {
+func SHA256(v []byte) string {
 	h := sha256.New()
-	h.Write([]byte(str))
-	return fmt.Sprintf("%x", h.Sum(nil))
+	h.Write(v)
+	return EncodeToHexString(h.Sum(nil))
 }

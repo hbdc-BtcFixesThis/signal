@@ -3,18 +3,15 @@ package main
 import (
 	"context"
 	"embed"
-	"fmt"
 	"log"
 	"os"
+	"sync"
 	"time"
 
 	"crypto/tls"
-	"encoding/json"
 	"io/fs"
 	"net/http"
 	"os/signal"
-
-	bolt "go.etcd.io/bbolt"
 )
 
 //go:embed static
@@ -37,32 +34,29 @@ type SignalServer struct {
 	// Defaults to log.Printf.
 	logf func(f string, v ...interface{})
 
-	// serveMux routes the various endpoints to the appropriate handler.
 	serveMux http.ServeMux
-	DB       *bolt.DB
-	SC       *ServerConf
+	sc       *ServerConf
+	nodes    map[string]struct {
+		node *Node
+		conf *NodeConf
+	}
 
-	// subscribersMu sync.Mutex
-	// subscribers   map[*subscriber]struct{}
+	sync.RWMutex
 }
 
-func newSignalServer(sc *ServerConf) *SignalServer {
-	// Open the my.db data file in your current directory.
-	// It will be created if it doesn't exist.
-	db, err := bolt.Open(sc.PathToDB(), 0600, &bolt.Options{Timeout: 1 * time.Second})
-	if err != nil {
-		log.Fatal(err)
-	}
-	ss := &SignalServer{
-		logf: log.Printf,
-		DB:   db,
-		SC:   sc,
-		// subscriberMessageBuffer: 16,
-		// subscribers:             make(map[*subscriber]struct{}),
-		// publishLimiter:          rate.NewLimiter(rate.Every(time.Millisecond*100), 8),
-	}
+func (ss *SignalServer) SetNode(id string, n *Node, c *NodeConf) {
+	ss.Lock()
+	ss.nodes[id] = struct {
+		node *Node
+		conf *NodeConf
+	}{node: n, conf: c}
+	ss.Unlock()
+}
 
-	fs, _ := fs.Sub(static, sc.PathToWebUI())
+// func (ss *SignalServer)
+
+func (ss *SignalServer) setHandlers() {
+	fs, _ := fs.Sub(static, string(ss.sc.UiDir()))
 	ck := ss.CheckAPIKey
 	jw := JSONResponseHeadersWrapper
 
@@ -72,9 +66,36 @@ func newSignalServer(sc *ServerConf) *SignalServer {
 	ss.serveMux.Handle("/verify/token", jw(ck(http.HandlerFunc(ss.verifyHandler))))
 
 	// public
-	ss.serveMux.Handle("/data", jw(http.HandlerFunc(ss.getPageHandler)))
+	// ss.serveMux.Handle("/data", jw(http.HandlerFunc(ss.getPageHandler)))
+}
 
-	return ss
+func newSignalServer() (*SignalServer, error) {
+	db := &DB{MustOpenDB(ServerConfFullPath.Default())}
+	sc := &ServerConf{db}
+	sc.CreateBucket(sc.ConfBucketName())
+	defer sc.Close()
+
+	ss := &SignalServer{logf: log.Printf}
+	defer ss.closeNodeDBs()
+
+	if nIDs, err := sc.NodeIds(); err != nil {
+		return nil, err
+	} else {
+		ss.sc = sc
+		ss.nodes = make(map[string]struct {
+			node *Node
+			conf *NodeConf
+		})
+		for _, id := range nIDs {
+			nc := &NodeConf{db}
+			ss.SetNode(id, &Node{
+				MustOpenAndWrapDB(ByteSlice2String(nc.DataPath(String2ByteSlice(id)))),
+			}, nc)
+		}
+	}
+
+	ss.setHandlers()
+	return ss, nil
 }
 
 func (ss *SignalServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -89,19 +110,33 @@ func (ss *SignalServer) Respond(w http.ResponseWriter, r Response) {
 	}
 }
 
-func (ss *SignalServer) Run() {
-	fmt.Println("Visit http://0.0.0.0" + ss.SC.Port())
+func (ss *SignalServer) closeNodeDB(id string) {
+	ss.RLock()
+	defer ss.RUnlock()
+	ss.nodes[id].node.Close()
+	ss.nodes[id].conf.Close()
+}
 
-	defer ss.DB.Close()
-	ss.initBuckets()
+func (ss *SignalServer) closeNodeDBs() {
+	ss.RLock()
+	for id, _ := range ss.nodes {
+		ss.RUnlock()
+		ss.closeNodeDB(id)
+		ss.RLock()
+	}
+	ss.RUnlock()
+}
+
+func (ss *SignalServer) Run() {
+	ss.logf("\nVisit http://0.0.0.0%s\n", ss.sc.Port())
 
 	s := &http.Server{
-		Addr:           ss.SC.Port(),
+		Addr:           ByteSlice2String(ss.sc.Port()),
 		Handler:        ss,
 		ReadTimeout:    time.Second * 10,
 		WriteTimeout:   time.Second * 10,
 		MaxHeaderBytes: 1 << 20,
-		TLSConfig:      ss.SC.TLSConf(),
+		TLSConfig:      ss.sc.TLSConf(),
 		TLSNextProto:   make(map[string]func(*http.Server, *tls.Conn, http.Handler), 0),
 	}
 
@@ -114,9 +149,9 @@ func (ss *SignalServer) Run() {
 	signal.Notify(sigs, os.Interrupt)
 	select {
 	case err := <-errc:
-		log.Printf("failed to serve: %v", err)
+		ss.logf("failed to serve: %v", err)
 	case sig := <-sigs:
-		log.Printf("terminating: %v", sig)
+		ss.logf("terminating: %v", sig)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
@@ -127,7 +162,7 @@ func (ss *SignalServer) Run() {
 	}
 }
 
-func (ss *SignalServer) getPageHandler(w http.ResponseWriter, r *http.Request) {
+/* func (ss *SignalServer) getPageHandler(w http.ResponseWriter, r *http.Request) {
 	// TODO: pagination
 	ss.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte("records"))
@@ -137,7 +172,7 @@ func (ss *SignalServer) getPageHandler(w http.ResponseWriter, r *http.Request) {
 			record := Record{}
 			err := json.Unmarshal(v, &record)
 			if err != nil {
-				fmt.Println(err)
+				s.logf(err)
 			} else {
 				pageResults = append(pageResults, record)
 			}
@@ -148,4 +183,4 @@ func (ss *SignalServer) getPageHandler(w http.ResponseWriter, r *http.Request) {
 
 		return nil
 	})
-}
+}*/

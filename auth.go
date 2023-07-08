@@ -1,10 +1,49 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
 	"net/http"
 )
+
+const (
+	DefaultPasswordLength = 20
+	NewPwMsg              = `
+
+		------ No config found! ------
+
+		A new one has been generated for you. To access and update your settings,
+		including the password gennerated below, visit https://localhost%s on
+		your prefered browser and use the following pw:
+
+		########################################################
+		####                                                ####
+		####        password: %-10v####
+		####                                                ####
+		########################################################
+
+		In the event that you would like to reset your settings to their defaults
+		you can do so by deleting the file signal_conf.db and restarting the
+		process. This will regenerate a conf file as well as a new password.
+
+
+		NOTE: The password above is stored as a hash. If you forget the password
+		above, or any future password/s set, you WILL NOT be able to retrieve them
+		here!
+
+
+	`
+)
+
+func MustGenNewAdminPW(msg, port string) string {
+	if pw, err := GenRandStr(DefaultPasswordLength); err == nil {
+		fmt.Printf(msg, port, pw)
+		return SHA256(pw)
+	} else {
+		panic(err)
+	}
+}
 
 func VerifyToken(token string, hash string) Response {
 	ua := http.StatusUnauthorized
@@ -30,17 +69,17 @@ func IsValidToken(token string, hash string) bool {
 	// for now and if needed allowing users to dictate the
 	// lifespan of a session should be fairly easy by adding
 	// a setting and updating the check here
-	return token == SHA256(hash+" "+time.Now().UTC().String()[:10])
+	return token == SHA256(String2ByteSlice(hash+" "+time.Now().UTC().String()[:10]))
 }
 
 func TokenExpired(token string, hash string) bool {
-	return token == SHA256(hash+" "+time.Now().AddDate(0, 0, -1).UTC().String()[:10])
+	return token == SHA256(String2ByteSlice(hash+" "+time.Now().AddDate(0, 0, -1).UTC().String()[:10]))
 }
 
 func (ss *SignalServer) CheckAPIKey(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
-		passHash := ss.SC.PassHash()
+		passHash := ByteSlice2String(ss.sc.PassHash())
 
 		resp := VerifyToken(key, passHash)
 		switch resp.StatusCode {
@@ -53,5 +92,5 @@ func (ss *SignalServer) CheckAPIKey(h http.Handler) http.Handler {
 }
 
 func (ss *SignalServer) verifyHandler(w http.ResponseWriter, r *http.Request) {
-	ss.Respond(w, VerifyToken(r.URL.Query().Get("key"), ss.SC.PassHash()))
+	ss.Respond(w, VerifyToken(r.URL.Query().Get("key"), string(ss.sc.PassHash())))
 }

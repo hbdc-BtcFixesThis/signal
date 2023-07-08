@@ -1,61 +1,79 @@
 package main
 
 import (
-	"sync"
-	"time"
-
 	"crypto/tls"
-
-	bolt "go.etcd.io/bbolt"
+	"encoding/json"
+	fp "path/filepath"
 )
 
-// maybe a bit unorthodox but for be able to
-// update settings via the ui a seperate db
-// that lives in the same dir as the server
-// will be used to access, update, and persist
+// Maybe a bit unorthodox but for the ability to update settings
+// via the ui, a seperate db is used to access, update, and persist
 // settings set by users. This also makes it
-// easier to update settings in real time
+// easy to update settings in real time and
+// allows users to manage multiple data sets
+// that are inherently decoupled; yet managed by
+// a single running server instance. It also
+// allows for other data to be stored wherever
+// users would like it to live because the
+// location of
 type ServerConf struct {
-	DB       *bolt.DB
-	settings *SignalSettings
-	sync.RWMutex
+	*DB
 }
 
-var defaultPathToServerConf = "signal_conf.db"
+func (sc *ServerConf) getOrSet(k ServerConfKey, v []byte) []byte {
+	result := map[string][]byte{k.String(): k.DefaultBytes()}
+	if len(v) > 0 {
+		result[k.String()] = v
+	}
+	sc.MustDo(GetOrPut, sc.ConfBucketName(), result)
+	return result[k.String()]
+}
 
-func NewServerConf() (*ServerConf, error) {
+func (sc ServerConf) ConfBucketName() []byte { return ServerConfBucket.DefaultBytes() }
+func (sc ServerConf) ConfFname() string      { return ServerConfFileName.Default() }
+func (sc ServerConf) FullPath() string       { return ServerConfFullPath.Default() }
+func (sc *ServerConf) Port() []byte          { return sc.getOrSet(Port, nil) }
+func (sc *ServerConf) UiDir() []byte         { return sc.getOrSet(UiDir, nil) }
+func (sc *ServerConf) Admin() []byte         { return sc.getOrSet(Admin, nil) }
+func (sc *ServerConf) nodeIds() []byte       { return sc.getOrSet(NodeIds, nil) }
+func (sc *ServerConf) PassHash() []byte      { return sc.getOrSet(PassHash, nil) }
+func (sc *ServerConf) DefaultNode() []byte   { return sc.getOrSet(DefaultNode, nil) }
+func (sc *ServerConf) TlsCrtFname() []byte   { return sc.getOrSet(TlsCrtFname, nil) }
+func (sc *ServerConf) TlsKeyFname() []byte   { return sc.getOrSet(TlsKeyFname, nil) }
+func (sc *ServerConf) TlsHosts() []byte      { return sc.getOrSet(TlsHosts, nil) }
+
+func (sc *ServerConf) TlsCrtPath() string { return fp.Join(SignalHomeDir(), string(sc.TlsCrtFname())) }
+func (sc *ServerConf) TlsKeyPath() string { return fp.Join(SignalHomeDir(), string(sc.TlsKeyFname())) }
+
+func (sc *ServerConf) NodeIds() ([]string, error) {
+	var nn []string
+	names := sc.nodeIds()
+	return nn, json.Unmarshal(names, &nn)
+}
+
+func (sc *ServerConf) GenNewRandAdminPassHash() []byte {
+	ph := MustGenNewAdminPW(NewPwMsg, ByteSlice2String(sc.Port()))
+	return sc.getOrSet(PassHash, String2ByteSlice(ph))
+}
+
+func (sc *ServerConf) genNewCertsIfNotFound() (string, string, error) {
 	// gen certs if none are found (updates to cert files get picked up automatically)
-	db, err := bolt.Open(defaultPathToServerConf, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	crtPath := sc.TlsCrtPath()
+	keyPath := sc.TlsKeyPath()
+	hosts := ByteSlice2String(sc.TlsHosts())
+
+	err := CheckTLSKeyCertPath(crtPath, keyPath)
 	if err != nil {
-		return nil, err
+		return "", "", err
+	}
+	err = GenerateTLSKeyCert(
+		crtPath, keyPath, hosts,
+	)
+	if err != nil {
+		return "", "", err
 	}
 
-	settings, err := LoadSettings(db)
-	if err != nil {
-		return nil, err
-	}
-	return &ServerConf{settings: settings, DB: db}, nil
-}
-
-func (sc *ServerConf) Port() string { return sc.settings.Port }
-
-func (sc *ServerConf) PathToWebUI() string { return sc.settings.UiDir }
-
-func (sc *ServerConf) PathToDB() string { return sc.settings.DbPath }
-
-func (sc *ServerConf) PassHash() string { return sc.settings.PassHash }
-
-func (sc *ServerConf) genNewCertsIfNotFound() error {
-	defaultCrtPath := sc.settings.TlsCrtPath
-	defaultKeyPath := sc.settings.TlsKeyPath
-	err := CheckTLSKeyCertPath(defaultCrtPath, defaultKeyPath)
-	if err != nil {
-		err = GenerateTLSKeyCert(defaultCrtPath, defaultKeyPath, "0.0.0.0,localhost,127.0.0.1,::1")
-		if err != nil {
-			return err
-		}
-	}
-	return nil
+	return crtPath, keyPath, nil
 }
 
 func (sc ServerConf) TLSConf() *tls.Config {
@@ -70,15 +88,14 @@ func (sc ServerConf) TLSConf() *tls.Config {
 			tls.TLS_RSA_WITH_AES_256_CBC_SHA,
 		},
 		GetCertificate: func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
-			// Always get latest signal.crt and signal.key
-			if err := sc.genNewCertsIfNotFound(); err != nil {
+			// Always get latest crt/key pair
+			if crtPath, keyPath, err := sc.genNewCertsIfNotFound(); err != nil {
 				return nil, err
-			}
-			cert, err := tls.LoadX509KeyPair(sc.settings.TlsCrtPath, sc.settings.TlsKeyPath)
-			if err != nil {
+			} else if cert, err := tls.LoadX509KeyPair(crtPath, keyPath); err != nil {
 				return nil, err
+			} else {
+				return &cert, nil
 			}
-			return &cert, nil
 		},
 	}
 }
