@@ -21,7 +21,10 @@ type ServerConf struct {
 }
 
 func (sc *ServerConf) getOrPut(k ServerConfKey, v []byte) []byte {
-	return sc.getOrSet(k.Bytes(), k.DefaultBytes(), sc.ConfBucketName())
+	if v != nil {
+		return sc.getOrSet(k.Bytes(), k.DefaultBytes(), sc.ConfBucketName())
+	}
+	return sc.getOrSet(k.Bytes(), v, sc.ConfBucketName())
 }
 
 func (sc ServerConf) ConfBucketName() []byte { return ServerConfBucket.DefaultBytes() }

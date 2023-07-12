@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"sync"
 )
 
@@ -12,7 +13,7 @@ type DBWithCache struct {
 }
 
 func cacheKey(k, b []byte) string {
-	return ByteSlice2String(append(k, append([]byte("::"), b...)...))
+	return ByteSlice2String(bytes.Join([][]byte{k, b}, []byte("::")))
 }
 
 func (dbc *DBWithCache) udpateCache(k, v, b []byte) {

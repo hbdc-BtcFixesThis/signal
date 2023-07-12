@@ -8,21 +8,27 @@ import (
 )
 
 var (
-	num  = 1000
+	num  = uint64(1000)
+	tStr = "test string"
+	tBts = []byte("test string")
+
 	once sync.Once
 	db   *DB
 	sc   ServerConf
 )
 
-func BenchmarkByteToInt(b *testing.B) {
+func safeString2ByteSlice(v string) []byte { return []byte(tStr) }
+func safeByteSlice2String(v []byte) string { return string(tBts) }
+
+func BenchmarkInToByteAndBack(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		Btoi(Itob(uint64(i)))
+		Btoi(Itob(num))
 	}
 }
 
 func BenchmarkItob(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		Itob(uint64(i))
+		Itob(num)
 	}
 }
 
@@ -34,28 +40,22 @@ func BenchmarkGenRandStr(b *testing.B) {
 
 func BenchmarkSHA256(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		SHA256([]byte("v"))
+		SHA256(tBts)
 	}
 }
 
 func BenchmarkEncodeToString_hexPkg(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		// compare the two
-		hex.EncodeToString([]byte("v"))
+		hex.EncodeToString(tBts)
 	}
 }
 
 func BenchmarkEncodeToHexString(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		EncodeToHexString([]byte("v"))
+		EncodeToHexString(tBts)
 	}
 }
-
-var tStr = "test string"
-var tBts = []byte("test string")
-
-func safeString2ByteSlice(v string) []byte { return []byte(tStr) }
-func safeByteSlice2String(v []byte) string { return string(tBts) }
 
 func BenchmarkString2ByteSlice(b *testing.B) {
 	for i := 0; i < b.N; i++ {
