@@ -17,30 +17,25 @@ import (
 // users would like it to live because the
 // location of
 type ServerConf struct {
-	*DB
+	*DBWithCache
 }
 
-func (sc *ServerConf) getOrSet(k ServerConfKey, v []byte) []byte {
-	result := map[string][]byte{k.String(): k.DefaultBytes()}
-	if len(v) > 0 {
-		result[k.String()] = v
-	}
-	sc.MustDo(GetOrPut, sc.ConfBucketName(), result)
-	return result[k.String()]
+func (sc *ServerConf) getOrPut(k ServerConfKey, v []byte) []byte {
+	return sc.getOrSet(k.Bytes(), k.DefaultBytes(), sc.ConfBucketName())
 }
 
 func (sc ServerConf) ConfBucketName() []byte { return ServerConfBucket.DefaultBytes() }
 func (sc ServerConf) ConfFname() string      { return ServerConfFileName.Default() }
 func (sc ServerConf) FullPath() string       { return ServerConfFullPath.Default() }
-func (sc *ServerConf) Port() []byte          { return sc.getOrSet(Port, nil) }
-func (sc *ServerConf) UiDir() []byte         { return sc.getOrSet(UiDir, nil) }
-func (sc *ServerConf) Admin() []byte         { return sc.getOrSet(Admin, nil) }
-func (sc *ServerConf) nodeIds() []byte       { return sc.getOrSet(NodeIds, nil) }
-func (sc *ServerConf) PassHash() []byte      { return sc.getOrSet(PassHash, nil) }
-func (sc *ServerConf) DefaultNode() []byte   { return sc.getOrSet(DefaultNode, nil) }
-func (sc *ServerConf) TlsCrtFname() []byte   { return sc.getOrSet(TlsCrtFname, nil) }
-func (sc *ServerConf) TlsKeyFname() []byte   { return sc.getOrSet(TlsKeyFname, nil) }
-func (sc *ServerConf) TlsHosts() []byte      { return sc.getOrSet(TlsHosts, nil) }
+func (sc *ServerConf) Port() []byte          { return sc.getOrPut(Port, nil) }
+func (sc *ServerConf) UiDir() []byte         { return sc.getOrPut(UiDir, nil) }
+func (sc *ServerConf) Admin() []byte         { return sc.getOrPut(Admin, nil) }
+func (sc *ServerConf) nodeIds() []byte       { return sc.getOrPut(NodeIds, nil) }
+func (sc *ServerConf) PassHash() []byte      { return sc.getOrPut(PassHash, nil) }
+func (sc *ServerConf) DefaultNode() []byte   { return sc.getOrPut(DefaultNode, nil) }
+func (sc *ServerConf) TlsCrtFname() []byte   { return sc.getOrPut(TlsCrtFname, nil) }
+func (sc *ServerConf) TlsKeyFname() []byte   { return sc.getOrPut(TlsKeyFname, nil) }
+func (sc *ServerConf) TlsHosts() []byte      { return sc.getOrPut(TlsHosts, nil) }
 
 func (sc *ServerConf) TlsCrtPath() string { return fp.Join(SignalHomeDir(), string(sc.TlsCrtFname())) }
 func (sc *ServerConf) TlsKeyPath() string { return fp.Join(SignalHomeDir(), string(sc.TlsKeyFname())) }
@@ -53,7 +48,7 @@ func (sc *ServerConf) NodeIds() ([]string, error) {
 
 func (sc *ServerConf) GenNewRandAdminPassHash() []byte {
 	ph := MustGenNewAdminPW(NewPwMsg, ByteSlice2String(sc.Port()))
-	return sc.getOrSet(PassHash, String2ByteSlice(ph))
+	return sc.getOrPut(PassHash, String2ByteSlice(ph))
 }
 
 func (sc *ServerConf) genNewCertsIfNotFound() (string, string, error) {

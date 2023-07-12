@@ -6,12 +6,16 @@ import (
 
 type NodeConf struct {
 	*DB
+	// bucket []byte
 }
 
 func (nc *NodeConf) getOrSet(bucket []byte, k NodeConfKey) []byte {
-	result := map[string][]byte{k.String(): k.DefaultBytes()}
-	nc.MustDo(GetOrPut, bucket, result)
-	return result[k.String()]
+	q := &Query{
+		Bucket: bucket,
+		KV:     []Pair{NewPair(k.Bytes(), k.DefaultBytes())},
+	}
+	nc.MustDo(nc.GetOrPut, q)
+	return q.KV[0].Val
 }
 
 func (nc *NodeConf) DataPath(bucket []byte) []byte       { return nc.getOrSet(bucket, Path) }

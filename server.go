@@ -71,8 +71,13 @@ func (ss *SignalServer) setHandlers() {
 
 func newSignalServer() (*SignalServer, error) {
 	db := &DB{MustOpenDB(ServerConfFullPath.Default())}
-	sc := &ServerConf{db}
-	sc.CreateBucket(sc.ConfBucketName())
+	sc := &ServerConf{
+		&DBWithCache{
+			cache: make(map[string][]byte),
+			DB:    db,
+		},
+	}
+	sc.CreateBucket(&Query{Bucket: sc.ConfBucketName()})
 	defer sc.Close()
 
 	ss := &SignalServer{logf: log.Printf}

@@ -3,10 +3,16 @@ package main
 import (
 	// "fmt"
 	"encoding/hex"
+	"sync"
 	"testing"
 )
 
-var num = 1000
+var (
+	num  = 1000
+	once sync.Once
+	db   *DB
+	sc   ServerConf
+)
 
 func BenchmarkByteToInt(b *testing.B) {
 	for i := 0; i < b.N; i++ {
@@ -72,5 +78,34 @@ func BenchmarkByteSlice2String(b *testing.B) {
 func BenchmarkSafeByteSlice2String(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		safeByteSlice2String(tBts)
+	}
+}
+
+func open() {
+	once.Do(func() {
+		db = MustOpenAndWrapDB("test.db")
+		sc = ServerConf{&DBWithCache{DB: db, cache: make(map[string][]byte)}}
+	})
+}
+
+func BenchmarkDBGetOrPut(b *testing.B) {
+	open()
+
+	for i := 0; i < b.N; i++ {
+		// db.MustDo(db.GetOrPut, q)
+		q := &Query{
+			Bucket: ServerConf{}.ConfBucketName(),
+			KV:     []Pair{NewPair(Port.Bytes(), Port.DefaultBytes())},
+		}
+		db.GetOrPut(q)
+	}
+}
+
+func BenchmarkServerConfGetOrPutPort(b *testing.B) {
+	open()
+	// cleanup := func() { sc.DeleteDB() }
+	// b.Cleanup(cleanup)
+	for i := 0; i < b.N; i++ {
+		sc.Port()
 	}
 }
