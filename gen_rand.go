@@ -6,7 +6,15 @@ import (
 	"math/big"
 )
 
-func GenRandStr(n int) ([]byte, error) {
+func MustGenRandBytes(n int) []byte {
+	if r, err := GenRandBytes(n); err != nil {
+		panic(err)
+	} else {
+		return r
+	}
+}
+
+func GenRandBytes(n int) ([]byte, error) {
 	const (
 		choices    = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 		numChoices = int64(len(choices))

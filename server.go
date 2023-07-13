@@ -36,20 +36,17 @@ type SignalServer struct {
 
 	serveMux http.ServeMux
 	sc       *ServerConf
+	nc       *NodeConf
 	nodes    map[string]struct {
 		node *Node
-		conf *NodeConf
 	}
 
 	sync.RWMutex
 }
 
-func (ss *SignalServer) SetNode(id string, n *Node, c *NodeConf) {
+func (ss *SignalServer) SetNode(id string, n *Node) {
 	ss.Lock()
-	ss.nodes[id] = struct {
-		node *Node
-		conf *NodeConf
-	}{node: n, conf: c}
+	ss.nodes[id] = struct{ node *Node }{node: n}
 	ss.Unlock()
 }
 
@@ -71,32 +68,37 @@ func (ss *SignalServer) setHandlers() {
 
 func newSignalServer() (*SignalServer, error) {
 	db := &DB{MustOpenDB(ServerConfFullPath.Default())}
-	sc := &ServerConf{
-		&DBWithCache{
-			cache: make(map[string][]byte),
-			DB:    db,
-		},
+	dbwc := &DBWithCache{
+		cache: make(map[string][]byte),
+		DB:    db,
 	}
+	sc := &ServerConf{dbwc}
+	nc := &NodeConf{dbwc}
+
+	// create if not exists
 	sc.CreateBucket(&Query{Bucket: sc.ConfBucketName()})
-	defer sc.Close()
 
-	ss := &SignalServer{logf: log.Printf}
-	defer ss.closeNodeDBs()
+	ss := &SignalServer{
+		sc:    sc,
+		logf:  log.Printf,
+		nodes: make(map[string]struct{ node *Node }),
+	}
 
-	if nIDs, err := sc.NodeIds(); err != nil {
-		return nil, err
-	} else {
-		ss.sc = sc
-		ss.nodes = make(map[string]struct {
-			node *Node
-			conf *NodeConf
-		})
+	// should start bg goroutine to listen for close signal
+	// defer ss.closeNodeDBs()
+	// sc.Close()
+	// nc.Close()
+
+	if nIDs, err := sc.NodeIds(); err == nil {
 		for _, id := range nIDs {
-			nc := &NodeConf{db}
 			ss.SetNode(id, &Node{
-				MustOpenAndWrapDB(ByteSlice2String(nc.DataPath(String2ByteSlice(id)))),
-			}, nc)
+				MustOpenAndWrapDB(ByteSlice2String(
+					nc.DataPath(String2ByteSlice(id)),
+				)),
+			})
 		}
+	} else {
+		return nil, err
 	}
 
 	ss.setHandlers()
@@ -119,7 +121,6 @@ func (ss *SignalServer) closeNodeDB(id string) {
 	ss.RLock()
 	defer ss.RUnlock()
 	ss.nodes[id].node.Close()
-	ss.nodes[id].conf.Close()
 }
 
 func (ss *SignalServer) closeNodeDBs() {

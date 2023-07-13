@@ -58,51 +58,6 @@ func (db *DB) CreateBucket(q *Query) error {
 	})
 }
 
-// Delete a key from target bucket
-func (db *DB) Delete(q *Query) error {
-	return db.Update(func(tx *bolt.Tx) error {
-		if b := tx.Bucket(q.Bucket); b != nil {
-			for _, kv := range q.KV {
-				// :: From bbolt source ::
-				// Delete removes a key from the bucket.
-				// If the key does not exist then nothing is done and a nil error is returned.
-				// Returns an error if the bucket was created from a read-only transaction.
-				if err := b.Delete(kv.Key); err != nil {
-					return err
-				}
-			}
-			// You commit the transaction by returning nil at the end.
-			return nil
-		}
-		return bolt.ErrBucketNotFound
-	})
-}
-
-func (db *DB) GetPage(q *PageQuery) error {
-	return db.View(func(tx *bolt.Tx) error {
-		// Assume bucket exists and has keys
-		if b := tx.Bucket(q.Bucket); b != nil {
-			c := b.Cursor()
-
-			kv := q.SeekFrom(c)
-			next := q.Direction(c)
-			size := q.Size()
-
-			for i := 0; i < size; i++ {
-				if kv.Key == nil {
-					// if k is nil after calling next we've reached the end
-					return nil
-				}
-				q.KV[i] = kv
-				kv = NewPair(next())
-			}
-
-			return nil
-		}
-		return bolt.ErrBucketNotFound
-	})
-}
-
 func (db *DB) Get(q *Query) error {
 	return db.View(func(tx *bolt.Tx) error {
 		if b := tx.Bucket(q.Bucket); b != nil {
@@ -146,6 +101,51 @@ func (db *DB) GetOrPut(q *Query) error {
 					}
 				}
 			}
+			return nil
+		}
+		return bolt.ErrBucketNotFound
+	})
+}
+
+// Delete a key from target bucket
+func (db *DB) Delete(q *Query) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		if b := tx.Bucket(q.Bucket); b != nil {
+			for _, kv := range q.KV {
+				// :: From bbolt source ::
+				// Delete removes a key from the bucket.
+				// If the key does not exist then nothing is done and a nil error is returned.
+				// Returns an error if the bucket was created from a read-only transaction.
+				if err := b.Delete(kv.Key); err != nil {
+					return err
+				}
+			}
+			// You commit the transaction by returning nil at the end.
+			return nil
+		}
+		return bolt.ErrBucketNotFound
+	})
+}
+
+func (db *DB) GetPage(q *PageQuery) error {
+	return db.View(func(tx *bolt.Tx) error {
+		// Assume bucket exists and has keys
+		if b := tx.Bucket(q.Bucket); b != nil {
+			c := b.Cursor()
+
+			kv := q.SeekFrom(c)
+			next := q.Direction(c)
+			size := q.Size()
+
+			for i := 0; i < size; i++ {
+				if kv.Key == nil {
+					// if k is nil after calling next we've reached the end
+					return nil
+				}
+				q.KV[i] = kv
+				kv = NewPair(next())
+			}
+
 			return nil
 		}
 		return bolt.ErrBucketNotFound

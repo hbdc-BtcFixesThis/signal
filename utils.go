@@ -8,6 +8,11 @@ import (
 	"os/user"
 )
 
+func ConcatSlice[T any](first []T, second []T) []T {
+	n := len(first)
+	return append(first[:n:n], second...)
+}
+
 func Btoi(b []byte) uint64 {
 	return binary.BigEndian.Uint64(b)
 }

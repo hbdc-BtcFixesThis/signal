@@ -5,7 +5,7 @@ import (
 )
 
 type NodeConf struct {
-	*DB
+	*DBWithCache
 	// bucket []byte
 }
 

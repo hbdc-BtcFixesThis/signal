@@ -37,7 +37,7 @@ const (
 )
 
 func MustGenNewAdminPW(msg, port string) string {
-	if pw, err := GenRandStr(DefaultPasswordLength); err == nil {
+	if pw, err := GenRandBytes(DefaultPasswordLength); err == nil {
 		fmt.Printf(msg, port, pw)
 		return SHA256(pw)
 	} else {

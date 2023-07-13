@@ -36,13 +36,15 @@ type PageQuery struct {
 
 func (q *PageQuery) SeekFrom(c *bolt.Cursor) Pair {
 	// sets the cursor position and returns the first k/v
-	if len(q.StartFrom) == 0 {
-		return NewPair(c.Last())
-	}
 	switch q.StartFrom.String() {
 	case "first":
 		return NewPair(c.First())
 	case "last":
+		return NewPair(c.Last())
+	case "":
+		if q.Ascending {
+			return NewPair(c.First())
+		}
 		return NewPair(c.Last())
 	default:
 		k, v := c.Seek(q.StartFrom)
