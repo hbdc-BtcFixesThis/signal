@@ -22,16 +22,27 @@ func (dbc *DBWithCache) udpateCache(k, v, b []byte) {
 	dbc.cache[cacheKey(k, b)] = v
 }
 
-func (dbc *DBWithCache) getOrSet(k, v, b []byte) []byte {
+func (dbc *DBWithCache) getCacheVal(k string) []byte {
 	dbc.RLock()
-	if val, found := dbc.cache[cacheKey(k, b)]; found {
-		return val
+	defer dbc.RUnlock()
+	if v, found := dbc.cache[k]; found {
+		return v
 	}
-	dbc.RUnlock()
+	return nil
+}
+
+func (dbc *DBWithCache) getOrSet(k, v, b []byte) []byte {
+	ck := cacheKey(k, b)
+	ckV := dbc.getCacheVal(ck)
+	if ckV != nil {
+		if v == nil || bytes.Equal(ckV, v) {
+			return ckV
+		}
+	}
 
 	q := &Query{Bucket: b, KV: []Pair{NewPair(k, v)}}
 	dbc.MustDo(dbc.GetOrPut, q)
-
 	dbc.udpateCache(k, q.KV[0].Val, b)
-	return q.KV[0].Val
+
+	return dbc.getCacheVal(ck)
 }

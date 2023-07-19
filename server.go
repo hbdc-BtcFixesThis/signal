@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"embed"
 	"log"
@@ -89,16 +90,15 @@ func newSignalServer() (*SignalServer, error) {
 	// sc.Close()
 	// nc.Close()
 
-	if nIDs, err := sc.NodeIds(); err == nil {
-		for _, id := range nIDs {
-			ss.SetNode(id, &Node{
-				MustOpenAndWrapDB(ByteSlice2String(
-					nc.DataPath(String2ByteSlice(id)),
-				)),
-			})
-		}
-	} else {
+	buckets, err := sc.Buckets()
+	if err != nil {
 		return nil, err
+	}
+	for _, id := range buckets {
+		if !bytes.Equal(id, ServerConfBucket.Bytes()) {
+			fp := ByteSlice2String(nc.DataPath(id))
+			ss.SetNode(ByteSlice2String(id), &Node{MustOpenAndWrapDB(fp)})
+		}
 	}
 
 	ss.setHandlers()

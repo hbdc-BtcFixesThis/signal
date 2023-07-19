@@ -21,7 +21,7 @@ type ServerConf struct {
 }
 
 func (sc *ServerConf) getOrPut(k ServerConfKey, v []byte) []byte {
-	if v != nil {
+	if v == nil {
 		return sc.getOrSet(k.Bytes(), k.DefaultBytes(), sc.ConfBucketName())
 	}
 	return sc.getOrSet(k.Bytes(), v, sc.ConfBucketName())
@@ -40,8 +40,12 @@ func (sc *ServerConf) TlsCrtFname() []byte   { return sc.getOrPut(TlsCrtFname, n
 func (sc *ServerConf) TlsKeyFname() []byte   { return sc.getOrPut(TlsKeyFname, nil) }
 func (sc *ServerConf) TlsHosts() []byte      { return sc.getOrPut(TlsHosts, nil) }
 
-func (sc *ServerConf) TlsCrtPath() string { return fp.Join(SignalHomeDir(), string(sc.TlsCrtFname())) }
-func (sc *ServerConf) TlsKeyPath() string { return fp.Join(SignalHomeDir(), string(sc.TlsKeyFname())) }
+func (sc *ServerConf) TlsCrtPath() string {
+	return fp.Join(SignalHomeDir(), ByteSlice2String(sc.TlsCrtFname()))
+}
+func (sc *ServerConf) TlsKeyPath() string {
+	return fp.Join(SignalHomeDir(), ByteSlice2String(sc.TlsKeyFname()))
+}
 
 func (sc *ServerConf) NodeIds() ([]string, error) {
 	var nn []string
@@ -60,15 +64,10 @@ func (sc *ServerConf) genNewCertsIfNotFound() (string, string, error) {
 	keyPath := sc.TlsKeyPath()
 	hosts := ByteSlice2String(sc.TlsHosts())
 
-	err := CheckTLSKeyCertPath(crtPath, keyPath)
-	if err != nil {
-		return "", "", err
-	}
-	err = GenerateTLSKeyCert(
-		crtPath, keyPath, hosts,
-	)
-	if err != nil {
-		return "", "", err
+	if err := CheckTLSKeyCertPath(crtPath, keyPath); err != nil {
+		if err = GenerateTLSKeyCert(crtPath, keyPath, hosts); err != nil {
+			return "", "", err
+		}
 	}
 
 	return crtPath, keyPath, nil

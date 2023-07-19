@@ -9,21 +9,25 @@ type NodeConf struct {
 	// bucket []byte
 }
 
-func (nc *NodeConf) getOrSet(bucket []byte, k NodeConfKey) []byte {
-	q := &Query{
-		Bucket: bucket,
-		KV:     []Pair{NewPair(k.Bytes(), k.DefaultBytes())},
+func (nc *NodeConf) getOrPut(bucket []byte, k NodeConfKey, v []byte) []byte {
+	if v == nil {
+		return nc.getOrSet(k.Bytes(), k.DefaultBytes(), bucket)
 	}
-	nc.MustDo(nc.GetOrPut, q)
-	return q.KV[0].Val
+	return nc.getOrSet(k.Bytes(), v, bucket)
 }
 
-func (nc *NodeConf) DataPath(bucket []byte) []byte       { return nc.getOrSet(bucket, Path) }
-func (nc *NodeConf) Name(bucket []byte) []byte           { return nc.getOrSet(bucket, Name) }
-func (nc *NodeConf) Type(bucket []byte) []byte           { return nc.getOrSet(bucket, Type) }
-func (nc *NodeConf) Peers(bucket []byte) []byte          { return nc.getOrSet(bucket, Peers) }
-func (nc *NodeConf) MaxRecordSize(bucket []byte) []byte  { return nc.getOrSet(bucket, MaxRecordSize) }
-func (nc *NodeConf) MaxStorageSize(bucket []byte) []byte { return nc.getOrSet(bucket, MaxStorageSize) }
+func (nc *NodeConf) DataPath(bucket []byte) []byte { return nc.getOrPut(bucket, Path, nil) }
+func (nc *NodeConf) Name(bucket []byte) []byte     { return nc.getOrPut(bucket, Name, nil) }
+func (nc *NodeConf) Type(bucket []byte) []byte     { return nc.getOrPut(bucket, Type, nil) }
+func (nc *NodeConf) Peers(bucket []byte) []byte    { return nc.getOrPut(bucket, Peers, nil) }
+
+func (nc *NodeConf) MaxRecordSize(bucket []byte) []byte {
+	return nc.getOrPut(bucket, MaxRecordSize, nil)
+}
+
+func (nc *NodeConf) MaxStorageSize(bucket []byte) []byte {
+	return nc.getOrPut(bucket, MaxStorageSize, nil)
+}
 
 func (nc *NodeConf) NodeType(bucket []byte) NodeType {
 	return NodeTypeFromString(string(nc.Type(bucket)))
