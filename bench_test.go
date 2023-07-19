@@ -28,6 +28,18 @@ func BenchmarkServerConfGetOrPutPort(b *testing.B) {
 	}
 }
 
+func BenchmarkF64tb(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		F64tb(fnum)
+	}
+}
+
+func BenchmarkF64fb(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		F64fb(fnumb)
+	}
+}
+
 func BenchmarkInToByteAndBack(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		Btoi(Itob(num))

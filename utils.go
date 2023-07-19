@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"math"
 	"unsafe"
 
 	"encoding/binary"
@@ -11,6 +13,18 @@ import (
 func ConcatSlice[T any](first []T, second []T) []T {
 	n := len(first)
 	return append(first[:n:n], second...)
+}
+
+// float 64 to bytes
+func F64tb(f float64) []byte {
+	buf := new(bytes.Buffer)
+	binary.Write(buf, binary.BigEndian, f)
+	return buf.Bytes()
+}
+
+// float 64 from bytes
+func F64fb(b []byte) float64 {
+	return math.Float64frombits(Btoi(b))
 }
 
 func Btoi(b []byte) uint64 {

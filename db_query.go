@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
@@ -23,13 +24,38 @@ func NewPair(k, v []byte) Pair {
 	return Pair{Key: KV(k), Val: KV(v)}
 }
 
+func (p *Pair) IsEqual(p2 *Pair) bool {
+	if !bytes.Equal(p.Key, p2.Key) {
+		return false
+	}
+	if !bytes.Equal(p.Val, p2.Val) {
+		return false
+	}
+	return true
+}
+
 type Query struct {
 	Bucket []byte
 	KV     []Pair
 }
 
+func (q *Query) IsEqual(q2 *Query) bool {
+	if !bytes.Equal(q.Bucket, q2.Bucket) {
+		return false
+	}
+	if len(q.KV) != len(q2.KV) {
+		return false
+	}
+	for i, kv := range q.KV {
+		if !kv.IsEqual(&q2.KV[i]) {
+			return false
+		}
+	}
+	return true
+}
+
 type PageQuery struct {
-	Query
+	*Query
 	StartFrom KV
 	Ascending bool
 }
