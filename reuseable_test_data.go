@@ -10,6 +10,7 @@ var (
 	fnumb       = F64tb(fnum)
 	tStr        = "test string"
 	tBts        = []byte("test string")
+	tBucket     = []byte("bucket")
 	tDBFileName = "test.db"
 
 	TestDB *DB
@@ -51,7 +52,7 @@ func open() {
 
 func tDataQ(size int, put bool, randKey bool, randVal bool) *Query {
 	q := &Query{
-		Bucket: []byte("bucket"),
+		Bucket: tBucket,
 		KV:     tDataKV(size, randKey, randVal),
 	}
 	if put {

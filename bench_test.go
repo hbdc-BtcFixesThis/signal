@@ -6,25 +6,39 @@ import (
 	"testing"
 )
 
-func BenchmarkDBGetOrPut(b *testing.B) {
+func BenchmarkServerConfGetOrPutPort(b *testing.B) {
 	open()
+	defer TestDB.DeleteDB()
 
 	for i := 0; i < b.N; i++ {
-		// TestDB.MustDo(TestDB.GetOrPut, q)
-		q := &Query{
-			Bucket: ServerConf{}.ConfBucketName(),
-			KV:     []Pair{NewPair(Port.Bytes(), Port.DefaultBytes())},
-		}
-		TestDB.GetOrPut(q)
+		TestSC.Port()
 	}
 }
 
-func BenchmarkServerConfGetOrPutPort(b *testing.B) {
+func BenchmarkServerConfMustGetOrPut(b *testing.B) {
 	open()
-	// cleanup := func() { TestSC.DeleteDB() }
-	// b.Cleanup(cleanup)
+	defer TestDB.DeleteDB()
+
+	q := &Query{
+		Bucket: tBucket,
+		KV:     []Pair{NewPair(Port.Bytes(), Port.DefaultBytes())},
+	}
 	for i := 0; i < b.N; i++ {
-		TestSC.Port()
+		TestSC.MustDo(TestSC.DB.GetOrPut, q)
+	}
+}
+
+func BenchmarkServerConfGetOrPut(b *testing.B) {
+	open()
+	defer TestDB.DeleteDB()
+
+	q := &Query{
+		Bucket: tBucket,
+		KV:     []Pair{NewPair(Port.Bytes(), Port.DefaultBytes())},
+	}
+	TestSC.CreateBucket(q)
+	for i := 0; i < b.N; i++ {
+		TestSC.DB.GetOrPut(q)
 	}
 }
 
@@ -66,7 +80,6 @@ func BenchmarkSHA256(b *testing.B) {
 
 func BenchmarkEncodeToString_hexPkg(b *testing.B) {
 	for i := 0; i < b.N; i++ {
-		// compare the two
 		hex.EncodeToString(tBts)
 	}
 }
