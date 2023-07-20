@@ -41,8 +41,20 @@ func (dbc *DBWithCache) getOrSet(k, v, b []byte) []byte {
 	}
 
 	q := &Query{Bucket: b, KV: []Pair{NewPair(k, v)}}
-	dbc.MustDo(dbc.GetOrPut, q)
+	dbc.MustDo(dbc.DB.GetOrPut, q)
 	dbc.udpateCache(k, q.KV[0].Val, b)
 
 	return dbc.getCacheVal(ck)
+}
+
+type dbKey interface {
+	Bytes() []byte
+	DefaultBytes() []byte
+}
+
+func (dbc *DBWithCache) GetOrPut(bucket []byte, k dbKey, v []byte) []byte {
+	if v == nil {
+		return dbc.getOrSet(k.Bytes(), k.DefaultBytes(), bucket)
+	}
+	return dbc.getOrSet(k.Bytes(), v, bucket)
 }

@@ -7,6 +7,9 @@ import (
 )
 
 func TestGetDefault(t *testing.T) {
+	open()
+	defer TestDB.DeleteDB()
+
 	q := tDataQuery(1, false)
 	// &Query{Bucket: []byte("bucket"), KV: tData(1, false)}
 	TestDB.MustDo(TestDB.Get, q)
@@ -25,6 +28,9 @@ func TestGetDefault(t *testing.T) {
 }
 
 func TestPutOne(t *testing.T) {
+	open()
+	defer TestDB.DeleteDB()
+
 	qAftPut := tDataQuery(1, true)
 	qNoPut := tDataQuery(1, false)
 	qAftPut.IsEqual(qNoPut)
@@ -49,12 +55,12 @@ func TestPutOne(t *testing.T) {
 	if !qAftPut.IsEqual(qNoPut) {
 		t.Fatalf("Get returned unexpected value %v", qAftPut.KV)
 	}
-
-	// cleanup
-	TestDB.MustDo(TestDB.Delete, qAftPut)
 }
 
 func TestGetOrPutMany(t *testing.T) {
+	open()
+	defer TestDB.DeleteDB()
+
 	qAftPut := tDataQuery(10, false)
 	TestDB.MustDo(TestDB.GetOrPut, qAftPut)
 
@@ -66,9 +72,6 @@ func TestGetOrPutMany(t *testing.T) {
 	if !qAftPut.IsEqual(qGetWithRandDefault) {
 		t.Fatalf("qAftPut.IsEqual(qGetWithRandDefault)! %v, %v", qAftPut, qGetWithRandDefault)
 	}
-
-	// cleanup
-	TestDB.MustDo(TestDB.Delete, qAftPut)
 }
 
 func TestPageQuerySize(t *testing.T) {
@@ -89,6 +92,9 @@ func TestPageQuerySize(t *testing.T) {
 }
 
 func TestGetPage(t *testing.T) {
+	open()
+	defer TestDB.DeleteDB()
+
 	q := tDataQuery(100, true)
 
 	// some size other then the default
@@ -117,7 +123,4 @@ func TestGetPage(t *testing.T) {
 			t.Fatalf("Get page returned unexpected key %v", kv)
 		}
 	}
-
-	// cleanup
-	TestDB.MustDo(TestDB.Delete, q)
 }

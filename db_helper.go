@@ -35,10 +35,11 @@ func MustOpenAndWrapDB(fp string) *DB {
 }
 
 func (db *DB) DeleteDB() error {
+	path := db.Path()
 	if err := db.Close(); err != nil {
 		return err
 	}
-	return os.Remove(db.Path())
+	return os.Remove(path)
 }
 
 func (db *DB) Buckets() ([][]byte, error) {

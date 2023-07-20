@@ -2,7 +2,6 @@ package main
 
 import (
 	"strconv"
-	"sync"
 )
 
 var (
@@ -13,7 +12,6 @@ var (
 	tBts        = []byte("test string")
 	tDBFileName = "test.db"
 
-	once   sync.Once
 	TestDB *DB
 	TestSC ServerConf
 )
@@ -42,19 +40,16 @@ func tDataKV(size int, randKey bool, randVal bool) []Pair {
 }
 
 func open() {
-	once.Do(func() {
-		TestDB = MustOpenAndWrapDB(tDBFileName)
-		TestSC = ServerConf{
-			&DBWithCache{
-				DB:    TestDB,
-				cache: make(map[string][]byte),
-			},
-		}
-	})
+	TestDB = MustOpenAndWrapDB(tDBFileName)
+	TestSC = ServerConf{
+		&DBWithCache{
+			DB:    TestDB,
+			cache: make(map[string][]byte),
+		},
+	}
 }
 
 func tDataQ(size int, put bool, randKey bool, randVal bool) *Query {
-	open()
 	q := &Query{
 		Bucket: []byte("bucket"),
 		KV:     tDataKV(size, randKey, randVal),
