@@ -52,6 +52,17 @@ func (db *DB) Buckets() ([][]byte, error) {
 	})
 }
 
+func getBucket(q *Query, tx *bolt.Tx) (*bolt.Bucket, error) {
+	var b *bolt.Bucket
+	if !q.CreateBucketIfNotExists || !tx.Writable() {
+		if b = tx.Bucket(q.Bucket); b == nil {
+			return nil, bolt.ErrBucketNotFound
+		}
+		return b, nil
+	}
+	return tx.CreateBucketIfNotExists(q.Bucket)
+}
+
 func (db *DB) CreateBucket(q *Query) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucketIfNotExists(q.Bucket)
@@ -60,113 +71,109 @@ func (db *DB) CreateBucket(q *Query) error {
 }
 
 func (db *DB) Get(q *Query) error {
-	return db.View(func(tx *bolt.Tx) error {
-		if b := tx.Bucket(q.Bucket); b != nil {
-			for i, _ := range q.KV {
-				if result := b.Get(q.KV[i].Key); result != nil {
-					q.KV[i].Val = result
-				}
-			}
-			return nil
+	return db.Update(func(tx *bolt.Tx) error {
+		b, err := getBucket(q, tx)
+		if err != nil {
+			return err
 		}
-		return bolt.ErrBucketNotFound
+		for i, _ := range q.KV {
+			if result := b.Get(q.KV[i].Key); result != nil {
+				q.KV[i].Val = result
+			}
+		}
+		return nil
 	})
 }
 
 func (db *DB) Put(q *Query) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		if b := tx.Bucket(q.Bucket); b != nil {
-			for _, kv := range q.KV {
-				if err := b.Put(kv.Key, kv.Val); err != nil {
-					// Returns an error if the bucket was created from
-					// a read-only transaction, if the key is blank, if
-					// the key is too large, or if the value is too large.
-					return err
-				}
-			}
-			return nil
+		b, err := getBucket(q, tx)
+		if err != nil {
+			return err
 		}
-		return bolt.ErrBucketNotFound
+		for _, kv := range q.KV {
+			if err := b.Put(kv.Key, kv.Val); err != nil {
+				// Returns an error if the bucket was created from
+				// a read-only transaction, if the key is blank, if
+				// the key is too large, or if the value is too large.
+				return err
+			}
+		}
+		return nil
 	})
 }
 
 func (db *DB) GetOrPut(q *Query) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		if b := tx.Bucket(q.Bucket); b != nil {
-			for i, _ := range q.KV {
-				if v := b.Get(q.KV[i].Key); v != nil {
-					q.KV[i].Val = v
-				} else {
-					if err := b.Put(q.KV[i].Key, q.KV[i].Val); err != nil {
-						return err
-					}
+		b, err := getBucket(q, tx)
+		if err != nil {
+			return err
+		}
+		for i, _ := range q.KV {
+			if v := b.Get(q.KV[i].Key); v != nil {
+				q.KV[i].Val = v
+			} else {
+				if err := b.Put(q.KV[i].Key, q.KV[i].Val); err != nil {
+					return err
 				}
 			}
-			return nil
 		}
-		return bolt.ErrBucketNotFound
+		return nil
 	})
 }
 
 // Delete a key from target bucket
 func (db *DB) Delete(q *Query) error {
 	return db.Update(func(tx *bolt.Tx) error {
-		if b := tx.Bucket(q.Bucket); b != nil {
-			for _, kv := range q.KV {
-				// :: From bbolt source ::
-				// Delete removes a key from the bucket.
-				// If the key does not exist then nothing is done and a nil error is returned.
-				// Returns an error if the bucket was created from a read-only transaction.
-				if err := b.Delete(kv.Key); err != nil {
-					return err
-				}
-			}
-			// You commit the transaction by returning nil at the end.
-			return nil
+		b, err := getBucket(q, tx)
+		if err != nil {
+			return err
 		}
-		return bolt.ErrBucketNotFound
+		for _, kv := range q.KV {
+			// :: From bbolt source ::
+			// Delete removes a key from the bucket.
+			// If the key does not exist then nothing is done and a nil error is returned.
+			// Returns an error if the bucket was created from a read-only transaction.
+			if err := b.Delete(kv.Key); err != nil {
+				return err
+			}
+		}
+		// You commit the transaction by returning nil at the end.
+		return nil
 	})
 }
 
-func (db *DB) GetPage(q *PageQuery) error {
+func (db *DB) GetPage(pq *PageQuery) error {
 	return db.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
-		if b := tx.Bucket(q.Bucket); b != nil {
-			c := b.Cursor()
-
-			kv := q.SeekFrom(c)
-			next := q.Direction(c)
-			size := q.Size()
-
-			for i := 0; i < size; i++ {
-				if kv.Key == nil {
-					// if k is nil after calling next we've reached the end
-					return nil
-				}
-				q.KV[i] = kv
-				kv = NewPair(next())
-			}
-
-			return nil
+		b, err := getBucket(pq.Query, tx)
+		if err != nil {
+			return err
 		}
-		return bolt.ErrBucketNotFound
+		c := b.Cursor()
+
+		kv := pq.SeekFrom(c)
+		next := pq.Direction(c)
+		size := pq.Size()
+
+		for i := 0; i < size; i++ {
+			if kv.Key == nil {
+				// if k is nil after calling next we've reached the end
+				return nil
+			}
+			pq.KV[i] = kv
+			kv = NewPair(next())
+		}
+
+		return nil
 	})
 }
 
 type QueryFunc func(q *Query) error
 
 func (db *DB) MustDo(do QueryFunc, query *Query) {
+	query.CreateBucketIfNotExists = true
 	if err := do(query); err != nil {
-		if err == bolt.ErrBucketNotFound {
-			if err := db.CreateBucket(query); err != nil {
-				panic(err)
-			} else {
-				if err = do(query); err != nil {
-					panic(err)
-				}
-			}
-		} else {
-			panic(err)
-		}
+		panic(err)
 	}
 }

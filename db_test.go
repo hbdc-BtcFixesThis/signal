@@ -35,7 +35,7 @@ func TestPutOne(t *testing.T) {
 	qNoPut := tDataQuery(1, false)
 	qAftPut.IsEqual(qNoPut)
 	if !qAftPut.IsEqual(qNoPut) {
-		t.Fatalf("qAftPut != qNoPut wher qAftPut = %v, qNoPut = %s", qAftPut.KV, qNoPut)
+		t.Fatalf("qAftPut != qNoPut wher qAftPut = %v, qNoPut = %v", qAftPut.KV, qNoPut)
 	}
 
 	// get random data with the same key

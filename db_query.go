@@ -37,6 +37,8 @@ func (p *Pair) IsEqual(p2 *Pair) bool {
 type Query struct {
 	Bucket []byte
 	KV     []Pair
+
+	CreateBucketIfNotExists bool
 }
 
 func (q *Query) IsEqual(q2 *Query) bool {
