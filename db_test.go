@@ -91,21 +91,15 @@ func TestPageQuerySize(t *testing.T) {
 	}
 }
 
-func TestGetPage(t *testing.T) {
+func TestGetPageDesending(t *testing.T) {
 	open()
 	defer TestDB.DeleteDB()
 
 	q := tDataQuery(100, true)
 
-	// some size other then the default
-	q20Aes := tDataQueryRandVals(20, false)
 	q20Des := tDataQueryRandVals(20, false)
-
 	for i, _ := range q20Des.KV {
 		q20Des.KV[i].Key = q.KV[len(q.KV)-i-1].Key
-	}
-	if q20Aes.IsEqual(q20Des) {
-		t.Fatalf("qAes.IsEqual(q20.DesQuery); where  q20Aes =  %v, q20Des = %v", q20Aes, q20Des)
 	}
 
 	pq20Des := &PageQuery{Query: q20Des}
@@ -116,11 +110,38 @@ func TestGetPage(t *testing.T) {
 		}
 	}
 
+	offset := len(pq20Des.KV)
+	pq20Des.StartFrom = pq20Des.KV[offset-1].Key
+	TestDB.GetPage(pq20Des)
+	for i, kv := range pq20Des.KV {
+		if !kv.IsEqual(&q.KV[len(q.KV)-1-i-offset]) {
+			t.Fatalf("Get page returned unexpected key %v %v", kv, q.KV[len(q.KV)-1-i])
+		}
+	}
+}
+
+func TestGetPageAesending(t *testing.T) {
+	open()
+	defer TestDB.DeleteDB()
+
+	q := tDataQuery(100, true)
+	// some size other then the default
+	q20Aes := tDataQueryRandVals(20, false)
+
 	pq20Aes := &PageQuery{Query: q20Aes, Ascending: true}
 	TestDB.GetPage(pq20Aes)
 	for i, kv := range pq20Aes.KV {
 		if !kv.IsEqual(&q.KV[i]) {
 			t.Fatalf("Get page returned unexpected key %v", kv)
+		}
+	}
+
+	offset := len(pq20Aes.KV)
+	pq20Aes.StartFrom = pq20Aes.KV[offset-1].Key
+	TestDB.GetPage(pq20Aes)
+	for i, kv := range pq20Aes.KV {
+		if !kv.IsEqual(&q.KV[i+offset]) {
+			t.Fatalf("Get page returned unexpected key %v %v", kv, q.KV[i+offset])
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"embed"
 	"log"
@@ -38,23 +37,21 @@ type SignalServer struct {
 	serveMux http.ServeMux
 	sc       *ServerConf
 	nc       *NodeConf
-	nodes    map[string]struct {
-		node *Node
-	}
+	buckets  *SignalBuckets
 
 	sync.RWMutex
 }
 
-func (ss *SignalServer) SetNode(id string, n *Node) {
-	ss.Lock()
-	ss.nodes[id] = struct{ node *Node }{node: n}
-	ss.Unlock()
+type SignalBuckets struct {
+	Record  *RecordBucket
+	Signal  *SignalBucket
+	Address *AddressBucket
+	Rank    *RankBucket
+	db      *DB
 }
 
-// func (ss *SignalServer)
-
 func (ss *SignalServer) setHandlers() {
-	fs, _ := fs.Sub(static, string(ss.sc.UiDir()))
+	fs, _ := fs.Sub(static, string(ss.sc.UiDir(nil)))
 	ck := ss.CheckAPIKey
 	jw := JSONResponseHeadersWrapper
 
@@ -64,42 +61,41 @@ func (ss *SignalServer) setHandlers() {
 	ss.serveMux.Handle("/verify/token", jw(ck(http.HandlerFunc(ss.verifyHandler))))
 
 	// public
-	// ss.serveMux.Handle("/data", jw(http.HandlerFunc(ss.getPageHandler)))
+	ss.serveMux.Handle("/new/record", jw(http.HandlerFunc(ss.newRecord)))
+	ss.serveMux.Handle("/get/page", jw(http.HandlerFunc(ss.getPage)))
 }
 
 func newSignalServer() (*SignalServer, error) {
 	db := &DB{MustOpenDB(ServerConfFullPath.Default())}
+	sdb := &DB{MustOpenDB(SignalDataDBFullPath.Default())}
 	dbwc := &DBWithCache{
 		cache: make(map[string][]byte),
 		DB:    db,
 	}
 	sc := &ServerConf{dbwc}
 	nc := &NodeConf{dbwc}
+	sb := &SignalBuckets{
+		Record:  &RecordBucket{sdb},
+		Signal:  &SignalBucket{sdb},
+		Address: &AddressBucket{sdb},
+		Rank:    &RankBucket{sdb},
+		db:      sdb,
+	}
 
 	// create if not exists
 	sc.CreateBucket(&Query{Bucket: sc.ConfBucketName()})
+	nc.CreateBucket(&Query{Bucket: nc.ConfBucketName()})
 
 	ss := &SignalServer{
-		sc:    sc,
-		logf:  log.Printf,
-		nodes: make(map[string]struct{ node *Node }),
+		sc:      sc,
+		nc:      nc,
+		buckets: sb,
+		logf:    log.Printf,
 	}
 
 	// should start bg goroutine to listen for close signal
 	// defer ss.closeNodeDBs()
 	// sc.Close()
-	// nc.Close()
-
-	buckets, err := sc.Buckets()
-	if err != nil {
-		return nil, err
-	}
-	for _, id := range buckets {
-		if !bytes.Equal(id, ServerConfBucket.Bytes()) {
-			fp := ByteSlice2String(nc.DataPath(id))
-			ss.SetNode(ByteSlice2String(id), &Node{MustOpenAndWrapDB(fp)})
-		}
-	}
 
 	ss.setHandlers()
 	return ss, nil
@@ -117,6 +113,7 @@ func (ss *SignalServer) Respond(w http.ResponseWriter, r Response) {
 	}
 }
 
+/*
 func (ss *SignalServer) closeNodeDB(id string) {
 	ss.RLock()
 	defer ss.RUnlock()
@@ -132,12 +129,13 @@ func (ss *SignalServer) closeNodeDBs() {
 	}
 	ss.RUnlock()
 }
+*/
 
 func (ss *SignalServer) Run() {
-	ss.logf("\nVisit http://0.0.0.0%s\n", ss.sc.Port())
+	ss.logf("\nVisit https://0.0.0.0%s\n", ss.sc.Port(nil))
 
 	s := &http.Server{
-		Addr:           ByteSlice2String(ss.sc.Port()),
+		Addr:           ByteSlice2String(ss.sc.Port(nil)),
 		Handler:        ss,
 		ReadTimeout:    time.Second * 10,
 		WriteTimeout:   time.Second * 10,
@@ -190,3 +188,78 @@ func (ss *SignalServer) Run() {
 		return nil
 	})
 }*/
+
+/*
+struct Record type {
+
+}
+
+	struct AddrMeta type {
+		records []Record
+		satsHeld uint
+		satsAllocated uint
+	}
+
+func (ss *SignalServer) lookupBtcAddress(addr string) (){
+}
+
+	func (ss *SignalServer) addNode(name string) ([]byte, error) {
+		if id, err := ss.GenID(name); err != nil {
+			return nil, err
+		}
+		q := &Query{
+			Bucket:                  NodeLookupBucket,
+			q.KV:                    []Pair{NewPair(id, name)},
+			CreateBucketIfNotExists: true,
+		}
+
+		if err := ss.nc.Put(q); err != nil {
+			return nil, err
+		}
+
+		// now create a bucket for this new node
+		// this bucket will be used as a node conf to store
+		// the settings of the new node being created and
+		// the nodeconf struct will be used to interact with
+		// this bucket going forward
+		q = &Query{
+			Bucket: id,
+			KV: []Pair{
+				NewPair(Name, name),
+				NewPair(NodeID, id),
+			},
+			CreateBucketIfNotExists: true,
+		}
+		if err := ss.nc.Put(q); err != nil {
+			return nil, err
+		}
+		ss.nodes[name] = Node{}
+
+		// put returns err if one
+		return id, nil
+	}
+
+	func (ss *SignalServer) ListNodes(startFrom KV) { //q *PageQuery) {
+		q := &Query{
+			Bucket:                  NodeLookupBucket,
+			CreateBucketIfNotExists: true,
+		}
+		pq := &PageQuery{
+			Query:     q,
+			KV:        make([]Pair, 10), // arbitrary 10 items per page
+			Ascending: true,
+		}
+		if startFrom != nil {
+			pq.StartFrom = startFrom
+		}
+		ss.nc.GetPage(pq)
+	}
+
+	func (ss *SignalServer) CreateNode(id string, n *Node) {
+		ss.Lock()
+		ss.nodes[id] = struct{ node *Node }{node: n}
+		ss.Unlock()
+	}
+
+// func (ss *SignalServer)
+*/

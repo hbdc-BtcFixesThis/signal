@@ -96,10 +96,17 @@ func NodeTypeFromString(nt string) NodeType {
 		return SIGNAL
 	case OTHER.String():
 		return OTHER
-	// case PUBLIC.String():
-	//	return PUBLIC
-	//case DOMAIN.String():
-	//	return DOMAIN
+	default:
+		return SIGNAL
+	}
+}
+
+func NodeTypeFromBytes(nt []byte) NodeType {
+	switch ByteSlice2String(nt) {
+	case SIGNAL.String():
+		return SIGNAL
+	case OTHER.String():
+		return OTHER
 	default:
 		return SIGNAL
 	}

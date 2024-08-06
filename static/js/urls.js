@@ -1,4 +1,5 @@
 var routes = {
 	verifyAuthToken: '/verify/token',
-	createRecord: '/create/record',
+	newRecord: '/new/record',
+	getPage: '/get/page',
 };

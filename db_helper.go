@@ -8,6 +8,21 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+type DataUpdates struct {
+	Put    []*Query
+	Delete []*Query
+}
+
+func (du *DataUpdates) AddDeleteQuery(q *Query)     { du.Delete = append(du.Delete, q) }
+func (du *DataUpdates) AddDeleteQueries(q []*Query) { du.Delete = append(du.Delete, q...) }
+func (du *DataUpdates) AddPutQuery(q *Query)        { du.Put = append(du.Put, q) }
+func (du *DataUpdates) AddPutQueries(q []*Query)    { du.Put = append(du.Put, q...) }
+
+func (du *DataUpdates) AppendUpdates(other *DataUpdates) {
+	du.Put = append(du.Put, other.Put...)
+	du.Delete = append(du.Delete, other.Delete...)
+}
+
 // You can rollback the transaction at any point by returning an error.
 // All database operations are allowed inside a read-write transaction.
 type DB struct{ *bolt.DB }
@@ -70,6 +85,21 @@ func (db *DB) CreateBucket(q *Query) error {
 	})
 }
 
+func (db *DB) GenID(q *Query) ([]byte, error) {
+	var id uint64
+	return Itob(id), db.Update(func(tx *bolt.Tx) error {
+		b, err := getBucket(q, tx)
+		if err != nil {
+			return err
+		}
+		id, err = b.NextSequence()
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+}
+
 func (db *DB) Get(q *Query) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := getBucket(q, tx)
@@ -85,22 +115,24 @@ func (db *DB) Get(q *Query) error {
 	})
 }
 
-func (db *DB) Put(q *Query) error {
-	return db.Update(func(tx *bolt.Tx) error {
-		b, err := getBucket(q, tx)
-		if err != nil {
+func (db *DB) putTx(q *Query, tx *bolt.Tx) error {
+	b, err := getBucket(q, tx)
+	if err != nil {
+		return err
+	}
+	for _, kv := range q.KV {
+		if err := b.Put(kv.Key, kv.Val); err != nil {
+			// Returns an error if the bucket was created from
+			// a read-only transaction, if the key is blank, if
+			// the key is too large, or if the value is too large.
 			return err
 		}
-		for _, kv := range q.KV {
-			if err := b.Put(kv.Key, kv.Val); err != nil {
-				// Returns an error if the bucket was created from
-				// a read-only transaction, if the key is blank, if
-				// the key is too large, or if the value is too large.
-				return err
-			}
-		}
-		return nil
-	})
+	}
+	return nil
+}
+
+func (db *DB) Put(q *Query) error {
+	return db.Update(func(tx *bolt.Tx) error { return db.putTx(q, tx) })
 }
 
 func (db *DB) GetOrPut(q *Query) error {
@@ -122,23 +154,40 @@ func (db *DB) GetOrPut(q *Query) error {
 	})
 }
 
-// Delete a key from target bucket
-func (db *DB) Delete(q *Query) error {
-	return db.Update(func(tx *bolt.Tx) error {
-		b, err := getBucket(q, tx)
-		if err != nil {
+func (db *DB) deleteTx(q *Query, tx *bolt.Tx) error {
+	b, err := getBucket(q, tx)
+	if err != nil {
+		return err
+	}
+	for _, kv := range q.KV {
+		// :: From bbolt source ::
+		// Delete removes a key from the bucket.
+		// If the key does not exist then nothing is done and a nil error is returned.
+		// Returns an error if the bucket was created from a read-only transaction.
+		if err := b.Delete(kv.Key); err != nil {
 			return err
 		}
-		for _, kv := range q.KV {
-			// :: From bbolt source ::
-			// Delete removes a key from the bucket.
-			// If the key does not exist then nothing is done and a nil error is returned.
-			// Returns an error if the bucket was created from a read-only transaction.
-			if err := b.Delete(kv.Key); err != nil {
+	}
+	// You commit the transaction by returning nil at the end.
+	return nil
+}
+
+func (db *DB) Delete(q *Query) error {
+	return db.Update(func(tx *bolt.Tx) error { return db.deleteTx(q, tx) })
+}
+
+func (db *DB) MultiWrite(updates *DataUpdates) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		for i := 0; i < len(updates.Delete); i++ {
+			if err := db.putTx(updates.Delete[i], tx); err != nil {
 				return err
 			}
 		}
-		// You commit the transaction by returning nil at the end.
+		for i := 0; i < len(updates.Put); i++ {
+			if putErr := db.deleteTx(updates.Put[i], tx); putErr != nil {
+				return putErr
+			}
+		}
 		return nil
 	})
 }

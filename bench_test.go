@@ -11,7 +11,7 @@ func BenchmarkServerConfGetOrPutPort(b *testing.B) {
 	defer TestDB.DeleteDB()
 
 	for i := 0; i < b.N; i++ {
-		TestSC.Port()
+		TestSC.Port(nil)
 	}
 }
 
@@ -33,10 +33,10 @@ func BenchmarkServerConfGetOrPut(b *testing.B) {
 	defer TestDB.DeleteDB()
 
 	q := &Query{
-		Bucket: tBucket,
-		KV:     []Pair{NewPair(Port.Bytes(), Port.DefaultBytes())},
+		Bucket:                  tBucket,
+		KV:                      []Pair{NewPair(Port.Bytes(), Port.DefaultBytes())},
+		CreateBucketIfNotExists: true,
 	}
-	TestSC.CreateBucket(q)
 	for i := 0; i < b.N; i++ {
 		TestSC.DB.GetOrPut(q)
 	}

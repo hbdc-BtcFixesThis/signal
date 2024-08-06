@@ -13,6 +13,7 @@ type ServerConfKey uint8
 
 const (
 	ServerConfFullPath ServerConfKey = iota
+	SignalDataDBFullPath
 	ServerConfBucket
 	ServerConfFileName
 	Admin
@@ -29,6 +30,7 @@ const (
 func (sck ServerConfKey) Keys() []string {
 	return []string{
 		"ServerConfFullPath",
+		"SignalDataDBFullPath",
 		"ServerConfBucket",
 		"ServerConfFileName",
 		"Admin",
@@ -46,6 +48,7 @@ func (sck ServerConfKey) Keys() []string {
 func (sck ServerConfKey) Defaults() []string {
 	return []string{
 		filepath.Join(SignalHomeDir(), "conf.db"),
+		filepath.Join(SignalHomeDir(), "signal_data.db"),
 		"conf",
 		"conf.db",
 		"admin",

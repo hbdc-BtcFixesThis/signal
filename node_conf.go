@@ -1,31 +1,26 @@
 package main
 
-import (
-	"encoding/json"
-)
-
 type NodeConf struct {
 	*DBWithCache
 }
 
-func (nc *NodeConf) DataPath(bucket []byte) []byte { return nc.GetOrPut(bucket, Path, nil) }
-func (nc *NodeConf) Name(bucket []byte) []byte     { return nc.GetOrPut(bucket, Name, nil) }
-func (nc *NodeConf) Type(bucket []byte) []byte     { return nc.GetOrPut(bucket, Type, nil) }
-func (nc *NodeConf) Peers(bucket []byte) []byte    { return nc.GetOrPut(bucket, Peers, nil) }
-
-func (nc *NodeConf) MaxRecordSize(bucket []byte) []byte {
-	return nc.GetOrPut(bucket, MaxRecordSize, nil)
+func (nc *NodeConf) gop(k NodeConfKey, v []byte) []byte {
+	return nc.GetOrPut(nc.ConfBucketName(), k.Bytes(), v, k.DefaultBytes())
 }
 
-func (nc *NodeConf) MaxStorageSize(bucket []byte) []byte {
-	return nc.GetOrPut(bucket, MaxStorageSize, nil)
+func (nc *NodeConf) ConfBucketName() []byte         { return NodeConfBucket.DefaultBytes() }
+func (nc *NodeConf) datapath(v []byte) []byte       { return nc.gop(Path, v) }
+func (nc *NodeConf) Name(v []byte) []byte           { return nc.gop(Name, v) }
+func (nc *NodeConf) Type(v []byte) []byte           { return nc.gop(Type, v) }
+func (nc *NodeConf) PeersB(v []byte) []byte         { return nc.gop(Peers, v) }
+func (nc *NodeConf) MaxRecordSize(v []byte) []byte  { return nc.gop(MaxRecordSize, v) }
+func (nc *NodeConf) MaxStorageSize(v []byte) []byte { return nc.gop(MaxStorageSize, v) }
+
+/*func (nc *NodeConf) NodeType(bucket []byte) NodeType {
+	return NodeTypeFromBytes(nc.Type(bucket, nil))
 }
 
-func (nc *NodeConf) NodeType(bucket []byte) NodeType {
-	return NodeTypeFromString(string(nc.Type(bucket)))
-}
-
-func (nc *NodeConf) PeersSlice(bucket []byte) ([]string, error) {
+func (nc *NodeConf) Peers(bucket []byte) ([]string, error) {
 	var p []string
-	return p, json.Unmarshal(nc.Peers(bucket), &p)
-}
+	return p, json.Unmarshal(nc.PeersB(bucket, nil), &p)
+}*/

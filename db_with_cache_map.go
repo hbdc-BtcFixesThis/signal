@@ -31,7 +31,7 @@ func (dbc *DBWithCache) getCacheVal(k string) []byte {
 	return nil
 }
 
-func (dbc *DBWithCache) getOrSet(k, v, b []byte) []byte {
+func (dbc *DBWithCache) getOrSet(b, k, v []byte) []byte {
 	ck := cacheKey(k, b)
 	ckV := dbc.getCacheVal(ck)
 	if ckV != nil {
@@ -47,14 +47,9 @@ func (dbc *DBWithCache) getOrSet(k, v, b []byte) []byte {
 	return dbc.getCacheVal(ck)
 }
 
-type dbKey interface {
-	Bytes() []byte
-	DefaultBytes() []byte
-}
-
-func (dbc *DBWithCache) GetOrPut(bucket []byte, k dbKey, v []byte) []byte {
+func (dbc *DBWithCache) GetOrPut(bucket, k, v, defaultV []byte) []byte {
 	if v == nil {
-		return dbc.getOrSet(k.Bytes(), k.DefaultBytes(), bucket)
+		return dbc.getOrSet(bucket, k, defaultV)
 	}
-	return dbc.getOrSet(k.Bytes(), v, bucket)
+	return dbc.getOrSet(bucket, k, v)
 }

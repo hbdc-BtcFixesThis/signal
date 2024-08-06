@@ -21,37 +21,37 @@ type ServerConf struct {
 }
 
 func (sc *ServerConf) gop(k ServerConfKey, v []byte) []byte {
-	return sc.GetOrPut(sc.ConfBucketName(), k, v)
+	return sc.GetOrPut(sc.ConfBucketName(), k.Bytes(), v, k.DefaultBytes())
 }
 
-func (sc ServerConf) ConfBucketName() []byte { return ServerConfBucket.DefaultBytes() }
-func (sc ServerConf) ConfFname() string      { return ServerConfFileName.Default() }
-func (sc ServerConf) FullPath() string       { return ServerConfFullPath.Default() }
-func (sc *ServerConf) Port() []byte          { return sc.gop(Port, nil) }
-func (sc *ServerConf) UiDir() []byte         { return sc.gop(UiDir, nil) }
-func (sc *ServerConf) Admin() []byte         { return sc.gop(Admin, nil) }
-func (sc *ServerConf) nodeIds() []byte       { return sc.gop(NodeIds, nil) }
-func (sc *ServerConf) PassHash() []byte      { return sc.gop(PassHash, nil) }
-func (sc *ServerConf) DefaultNode() []byte   { return sc.gop(DefaultNode, nil) }
-func (sc *ServerConf) TlsCrtFname() []byte   { return sc.gop(TlsCrtFname, nil) }
-func (sc *ServerConf) TlsKeyFname() []byte   { return sc.gop(TlsKeyFname, nil) }
-func (sc *ServerConf) TlsHosts() []byte      { return sc.gop(TlsHosts, nil) }
+func (sc ServerConf) ConfBucketName() []byte       { return ServerConfBucket.DefaultBytes() }
+func (sc ServerConf) ConfFname() string            { return ServerConfFileName.Default() }
+func (sc ServerConf) FullPath() string             { return ServerConfFullPath.Default() }
+func (sc *ServerConf) Port(v []byte) []byte        { return sc.gop(Port, v) }
+func (sc *ServerConf) UiDir(v []byte) []byte       { return sc.gop(UiDir, v) }
+func (sc *ServerConf) Admin(v []byte) []byte       { return sc.gop(Admin, v) }
+func (sc *ServerConf) nodeIds(v []byte) []byte     { return sc.gop(NodeIds, v) }
+func (sc *ServerConf) PassHash(v []byte) []byte    { return sc.gop(PassHash, v) }
+func (sc *ServerConf) DefaultNode(v []byte) []byte { return sc.gop(DefaultNode, v) }
+func (sc *ServerConf) TlsCrtFname(v []byte) []byte { return sc.gop(TlsCrtFname, v) }
+func (sc *ServerConf) TlsKeyFname(v []byte) []byte { return sc.gop(TlsKeyFname, v) }
+func (sc *ServerConf) TlsHosts(v []byte) []byte    { return sc.gop(TlsHosts, v) }
 
 func (sc *ServerConf) TlsCrtPath() string {
-	return fp.Join(SignalHomeDir(), ByteSlice2String(sc.TlsCrtFname()))
+	return fp.Join(SignalHomeDir(), ByteSlice2String(sc.TlsCrtFname(nil)))
 }
 func (sc *ServerConf) TlsKeyPath() string {
-	return fp.Join(SignalHomeDir(), ByteSlice2String(sc.TlsKeyFname()))
+	return fp.Join(SignalHomeDir(), ByteSlice2String(sc.TlsKeyFname(nil)))
 }
 
 func (sc *ServerConf) NodeIds() ([]string, error) {
 	var nn []string
-	names := sc.nodeIds()
+	names := sc.nodeIds(nil)
 	return nn, json.Unmarshal(names, &nn)
 }
 
 func (sc *ServerConf) GenNewRandAdminPassHash() []byte {
-	ph := MustGenNewAdminPW(NewPwMsg, ByteSlice2String(sc.Port()))
+	ph := MustGenNewAdminPW(NewPwMsg, ByteSlice2String(sc.Port(nil)))
 	return sc.gop(PassHash, String2ByteSlice(ph))
 }
 
@@ -59,7 +59,7 @@ func (sc *ServerConf) genNewCertsIfNotFound() (string, string, error) {
 	// gen certs if none are found (updates to cert files get picked up automatically)
 	crtPath := sc.TlsCrtPath()
 	keyPath := sc.TlsKeyPath()
-	hosts := ByteSlice2String(sc.TlsHosts())
+	hosts := ByteSlice2String(sc.TlsHosts(nil))
 
 	if err := CheckTLSKeyCertPath(crtPath, keyPath); err != nil {
 		if err = GenerateTLSKeyCert(crtPath, keyPath, hosts); err != nil {

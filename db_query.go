@@ -2,6 +2,8 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
@@ -14,6 +16,20 @@ const (
 type KV []byte
 
 func (kv KV) String() string { return ByteSlice2String(kv) }
+
+func (kv KV) MarshalJSON() ([]byte, error) {
+	return String2ByteSlice(fmt.Sprintf(`"%s"`, kv.String())), nil
+}
+
+func (kv *KV) UnmarshalJSON(b []byte) error {
+	var data string
+	if err := json.Unmarshal(b, &data); err != nil {
+		return err
+	}
+
+	*kv = String2ByteSlice(data)
+	return nil
+}
 
 type Pair struct {
 	Key KV
@@ -75,11 +91,13 @@ func (q *PageQuery) SeekFrom(c *bolt.Cursor) Pair {
 		}
 		return NewPair(c.Last())
 	default:
-		k, v := c.Seek(q.StartFrom)
-		if k == nil {
+		if k, _ := c.Seek(q.StartFrom); k == nil {
 			return NewPair(c.Last())
 		}
-		return NewPair(k, v)
+		// return new pair after calling next since a valid
+		// key was sent and a value for it was found. That
+		// indicates the client already having the StartFrom
+		return NewPair(q.Direction(c)())
 	}
 }
 

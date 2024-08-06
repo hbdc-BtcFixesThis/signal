@@ -13,7 +13,6 @@
 	<link rel="stylesheet" href="css/percent_slider.css">
 </head>
 <body>
-
 	<div class="bg w100 h100">
 		<img class="bg w100 h100" src="images/2001_monolith.jpg" alt="Signal through the noise">
 	</div>
@@ -37,68 +36,82 @@
 
 	<header class="header box-shadow w100">
 
-		<button class="expand-settings" id="expand-settings">
-			<div class="gear"></div>
-		</button>
+		<div class="dflexnowrap">
+			<button class="expand-settings dbIcon" id="expand-db-select-settings"></button>
+			<button class="expand-settings nodesIcon" id="expand-peer-settings"></button>
+			<button class="expand-settings gearIcon" id="expand-database-settings"></button>
+			<button class="expand-settings serverIcon" id="expand-server-settings"></button>
+			<button class="expand-settings bitcoinIcon" id="expand-bitcoin-settings"></button>
+		</div>
 
-		<div id="settings" class="server-settings box-shadow" style="display: none">
-			<div class="settings-storage">
+		<div id="settings" class="server-settings box-shadow">
+			<div id="db-select-settings" class="w100 hide">
+				<div class="select-dropdown">
+					<select class="drop-down"
+							id="select-db">
+						<option value="max_db_size">Max Databse Size</option>
+						<option value="peers">Peers</option>
+						<option value="new_pw">New Password</option>
+						<option value="path_to_db">Path to Database</option>
+						<option value="bitcoin_settings">Bitcoin</option>
+						<option value="" disabled></option>
+						<option value="" disabled></option>
+						<option value="" disabled></option>
+						<option value="" disabled></option>
+					</select>
+				</div>
+			</div>
+			<div id="peer-settings" class="settings-peers hide">
 				<div class="settings-content">
-					<div id="percent-slider">
-						<div class="percent-slider-bars">
-							<div class="percent-slider-bar"
-								 id="percent-slider-server-storage-1"
-								 style="width: 50%;">50%</div>
-							<div class="percent-slider-select"></div>
-							<div class="percent-slider-bar"
-								 id="percent-slider-server-storage-2"
-								 style="width: 50%;">50%</div>
-						</div>
-						<input id="percent-slider-storage"
-							   class="percent-slider-input"
-							   type="range" readonly></input>
-						<div id="percent-slider-ledger-wrapper">
-							<div class="select-dropdown">
-								<label for="storage-space-left">Max: </label> 
-								<input type="number"
-									   id="storage-space-left"
-									   class="storage-space-left"
-									   name="path-to-data-dir"
-									   step=0.01
-									   value=0
-									   readonly>
-								<select class="storage-space-units"
-										id="storage-space-units">
-									<option value="Byte">Byte</option>
-									<option value="KB">KB</option>
-									<option value="MB">MB</option>
-									<option value="GB">GB</option>
-									<option value="TB">TB</option>
-									<option value="PB" disabled>PB</option>
-									<option value="EB" disabled>EB</option>
-									<option value="ZB" disabled>ZB</option>
-									<option value="YB" disabled>YB</option>
-								</select>
-							</div>
-						</div>
+				<table>
+					<tr><td>peers</td></tr>
+					<tr><td>{domain}.com</td></tr>
+				</table>
+				</div>
+			</div>
+			<div id="database-settings" class="settings-data-path hide">
+				<div class="settings-content">
+					<div class="select-dropdown form-input">
+						<label for="storage-space-left">Max: </label> 
+						<input type="number"
+							   id="storage-space-left"
+							   class="storage-space-left"
+							   name="path-to-data-dir"
+							   step=0.01
+							   value=0
+							   readonly>
+						<select class="w50 drop-down"
+								id="storage-space-units">
+							<option value="Byte">Byte</option>
+							<option value="KB">KB</option>
+							<option value="MB">MB</option>
+							<option value="GB">GB</option>
+							<option value="TB">TB</option>
+							<option value="PB" disabled>PB</option>
+							<option value="EB" disabled>EB</option>
+							<option value="ZB" disabled>ZB</option>
+							<option value="YB" disabled>YB</option>
+						</select>
+					</div>
+					<div class="form-input">
+						<label for="path-to-data-dir">Path: </label> 
+						<input type="text"
+							   id="path-to-data-dir"
+							   name="path-to-data-dir"
+							   placeholder="path/to/data/dir ...">
+					</div>
+					<div class="form-input">
+						<label for="password">Password: </label> 
+						<input type="text"
+							   id="password"
+							   name="password"
+							   placeholder="Database password">
 					</div>
 				</div>
+
+				<button class="w100 orange-button bottom" id="save-setting">Save</button>
 			</div>
-			<div class="settings-data-path">
-				<div class="settings-content">
-					<label for="path-to-data-dir">Path to Data</label> 
-					<input type="text"
-						   id="path-to-data-dir"
-						   name="path-to-data-dir"
-						   placeholder="path/to/data/dir ...">
-					<label for="password">Password</label> 
-					<input type="text"
-						   id="password"
-						   name="password"
-						   placeholder="Database password">
-				</div>
-			</div>
-			<div class="settings-auth">
+			<div class="settings-auth hide" id="server-settings">
 				<div class="settings-content">
 					<label for="password">Password</label> 
 					<input type="text"
@@ -112,7 +125,7 @@
 						   placeholder="New db password ...">
 				</div>
 			</div>
-			<div class="settings-bitcoin">
+			<div class="settings-bitcoin hide" id="bitcoin-settings">
 				<div class="settings-content">
 					<label for="url-to-electrum">URL</label> 
 					<input type="text"
@@ -133,14 +146,6 @@
 						   placeholder="Optional proxy url ...">
 				</div>
 			</div>
-			<div class="settings-peers">
-				<div class="settings-content">
-				<table>
-					<tr><td>peers</td></tr>
-					<tr><td>{domain}.com</td></tr>
-				</table>
-				</div>
-			</div>
 		</div>
     </header>
 
@@ -149,19 +154,19 @@
 		  <div class="tbl-header">
 			<table cellpadding="0" cellspacing="0" border="0" class="w100">
 			  <thead>
-				<tr id="tbl-header-tr">
+				<tr id="record-tbl-header-tr">
+				<tr class="add-row">
+				  <td colspan=2">
+					<button class="w100 orange-button" role="button" id="create-record-trigger"  id="create-record-trigger">+</button>
+				  </td>
+				</tr>
 				</tr>
 			  </thead>
 			</table>
 		  </div>
 		  <div class="tbl-content">
 			<table cellpadding="0" cellspacing="0" border="0" class="w100">
-			  <tbody id="tbl-body-content">
-				<tr class="add-row">
-				  <td colspan=2">
-					<button class="w100 orange-button" role="button" id="create-record-trigger">+</button>
-				  </td>
-				</tr>
+			  <tbody id="record-tbl-body-content">
 			  </tbody>
 			</table>
 		  </div>
@@ -170,18 +175,18 @@
 		  <div class="tbl-header">
 			<table cellpadding="0" cellspacing="0" border="0" class="w100">
 			  <thead>
-				<tr id="tbl-header-tr"><th>Name</th><th>Signal</th></tr>
+				<tr id="record-details-tbl-header-tr"><th>Name</th><th>Signal</th></tr>
+				<tr class="add-row">
+				  <td colspan=2">
+					<button class="w100 orange-button" role="button" onclick="javascript:createRecordTrigger.click()">+</button>
+				  </td>
+				</tr>
 			  </thead>
 			</table>
 		  </div>
 		  <div class="tbl-content">
 			<table cellpadding="0" cellspacing="0" border="0" class="w100">
-			  <tbody id="tbl-body-content">
-				<tr class="add-row">
-				  <td colspan=2">
-					<button class="w100 orange-button" role="button" id="create-record-trigger">+</button>
-				  </td>
-				</tr>
+			  <tbody id="record-details-tbl-body-content">
 			  </tbody>
 			</table>
 		  </div>
@@ -231,7 +236,7 @@
 						  style="height: 5em"
 						  autocomplete="off"></textarea>
 			
-				<div id="percent-slider">
+				<!--div id="percent-slider">
 					<div class="percent-slider-bars">
 						<div class="percent-slider-bar"
 							 id="percent-slider-new-rec-1"
@@ -252,7 +257,14 @@
 							<span class="percent-slider-ledger-text">Free</span>
 						</div>
 					</div>
-				</div>
+				</div-->
+
+				<input type="number"
+					   id="new-record-signal-sats"
+					   class="signal-sats"
+					   name="new-record-sats"
+					   placeholder="Number of sats to use for spreading this signal."
+					   step=1>
 
 				<input type="text"
 					   id="signal-signature"
@@ -283,6 +295,8 @@
 		</div>
 	</div>
 </body>
+<script type="text/javascript" src="js/request.js"></script>
+<script type="text/javascript" src="js/icons.js"></script>
 <script type="text/javascript" src="js/urls.js"></script>
 <script type="text/javascript" src="js/home.js"></script>
 <script type="text/javascript" src="js/settings.js"></script>
@@ -291,6 +305,5 @@
 <script type="text/javascript" src="js/modal.js"></script>
 <script type="text/javascript" src="js/percent_slider.js"></script>
 <script type="text/javascript" src="js/hash.js"></script>
-<script type="text/javascript" src="js/request.js"></script>
 <script type="text/javascript" src="js/auth.js"></script>
 </html>

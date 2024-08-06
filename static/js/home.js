@@ -1,24 +1,18 @@
+var recordTableID = 'record-tbl-body-content';
+var recordTableHeaderID = 'record-tbl-header-tr';
 var results = {
 	'headers': [
 		{'key': 'id',           'display_header': 'Name'},
 		{'key': 'signal',       'display_header': 'Signal'},
 	],
-	'signals': [
-	{
-		'id': 'monolith',
-		'content': 'If bitcoin could speak, what would it say?',
-		'signal': '.002 btc/byte',
-		'total_btc': '0.0011',
-	},
-	],
-}
+};
 
 function genHeaders(headers) {
 	var headerHTML = '';
 	for (header of headers) {
 		headerHTML += '<th>' + header.display_header + '</th>\n';
 	}
-	document.getElementById('tbl-header-tr').innerHTML = headerHTML;
+	document.getElementById(recordTableHeaderID).innerHTML = headerHTML;
 	console.log(headerHTML);
 }
 
@@ -33,14 +27,44 @@ function genRow(row, headers) {
 
 function genRows(headers, rows) {
 	var modalTemplateHtml = '';
+	var tbl = document.getElementById(recordTableID);
 	for (row of rows) {
-		document.getElementById('tbl-body-content').innerHTML += '<tr class="trigger-modal id="' + row.id + '>' + genRow(row, headers) + '</tr>';
+		tbl.innerHTML += '<tr class="trigger-modal id="' + row.id + '>' + genRow(row, headers) + '</tr>';
 	}
 }
 
+function  clearTableRows() {
+	var tbl = document.getElementById(recordTableID);
+	var tableRows = tbl.getElementsByTagName('tr');
+	var rowCount = tableRows.length;
+
+	for (var i = rowCount - 1; i >= 0; i--) {
+		tbl.deleteRow(i);
+	}
+}
+
+function successfullyRetrievedPage(xhr) {
+    // removeLoadingClass(submitNewRecord);
+    // toggleCreateRecordModal();
+	resp = JSON.parse(xhr.response);
+	results.signals = resp;
+	clearTableRows()
+	genRows(results.headers, results.signals);
+    // showSuccessBanner(xhr.responseText)
+}
+
+function failedToRetrievePage(xhr) {
+    // removeLoadingClass(submitNewRecord);
+    showErrorBanner(xhr.responseText);
+} 
+
 function genTable() {
 	genHeaders(results.headers);
-	genRows(results.headers, results.signals);
+	results.signals = sendJsonPost(
+		routes.getPage, "GET", null,
+		successfullyRetrievedPage, failedToRetrievePage,
+	);
+	// genRows(results.headers, results.signals);
 }
 
 genTable()

@@ -14,8 +14,8 @@ unspent in bitcoin wallet address
 
 {bitcion address}
 
-may {percent}% of the balance be used
-to spread the following record
+may {numSats} sats of the balance be
+used to spread the following record
 
 {name label}:
 {name}
@@ -28,7 +28,7 @@ let recordState = {
 	name: document.getElementById("new-record-name"),
 	content: document.getElementById("new-record-content"),
 	address: document.getElementById("signal-wallet-address"),
-	percent: document.getElementById('percent-slider-input'),
+	numSats: document.getElementById('new-record-signal-sats'),
 	signature: document.getElementById("signal-signature"),
 	signatureMessage: document.getElementById('signal-signature-message'),
 };
@@ -46,11 +46,11 @@ function failedToAddRecord(xhr) {
 	showErrorBanner(xhr.responseText);
 }
 
-function updateNewSignalSignatureMessage(name, content, percent, nLabel, cLabel, btcAddr) {
+function updateNewSignalSignatureMessage(name, content, numSats, nLabel, cLabel, btcAddr) {
 	var newMessageToSign = newSignalSignatureMessage.slice().replace(
 		"{name}", name).replace(
 		"{content}", content).replace(
-		"{percent}", percent).replace(
+		"{numSats}", numSats).replace(
 		"{name label}", nLabel).replace(
 		"{content label}", cLabel).replace(
 		"{bitcion address}", btcAddr,
@@ -78,7 +78,7 @@ function updateSignalSignaturerMessage() {
 		contentLabel += hashLabel
 	}
 	updateNewSignalSignatureMessage(
-		name, content, recordState.percent.value,
+		name, content, recordState.numSats.value,
 		nameLabel, contentLabel, recordState.address.value,
 	);
 }
@@ -86,9 +86,10 @@ function updateSignalSignaturerMessage() {
 recordState.name.addEventListener('input', (e)=> {updateSignalSignaturerMessage();}, false);
 recordState.content.addEventListener('input', (e)=> {updateSignalSignaturerMessage();}, false);
 recordState.address.addEventListener('input', (e)=> {updateSignalSignaturerMessage();}, false);
+recordState.numSats.addEventListener('input', (e)=> {updateSignalSignaturerMessage();}, false);
 createRecordTrigger.addEventListener("click", toggleCreateRecordModal);
 cancelCreateTrigger.addEventListener("click", toggleCreateRecordModal);
-broadcast.addEventListener('submit', (e)=> {
+submitNewRecord.addEventListener('click', (e)=> {
 	// dont reload page
 	e.preventDefault();
 
@@ -96,11 +97,14 @@ broadcast.addEventListener('submit', (e)=> {
 	addLoadingClass(submitNewRecord);
 
 	// make request
-	sendJsonPost(routes.createRecord, "POST", {
-		name: recordState.name.value,
-		content: recordState.content.value,
-		address: recordState.address.value,
-		percent: recordState.percent.value,
-		signature: recordState.signature.value,
+	sendJsonPost(routes.newRecord, "POST", {
+		key: recordState.name.value,
+		value: recordState.content.value,
+		signals: [{
+			btc_address: recordState.address.value,
+			sats: new Number(recordState.numSats.value),
+			signature: recordState.signature.value,
+		},],
 	}, successfullyAddedRecord, failedToAddRecord);
+	genTable()
 }, false);

@@ -79,7 +79,7 @@ func TokenExpired(token string, hash string) bool {
 func (ss *SignalServer) CheckAPIKey(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		key := r.URL.Query().Get("key")
-		passHash := ByteSlice2String(ss.sc.PassHash())
+		passHash := ByteSlice2String(ss.sc.PassHash(nil))
 
 		resp := VerifyToken(key, passHash)
 		switch resp.StatusCode {
@@ -92,5 +92,5 @@ func (ss *SignalServer) CheckAPIKey(h http.Handler) http.Handler {
 }
 
 func (ss *SignalServer) verifyHandler(w http.ResponseWriter, r *http.Request) {
-	ss.Respond(w, VerifyToken(r.URL.Query().Get("key"), string(ss.sc.PassHash())))
+	ss.Respond(w, VerifyToken(r.URL.Query().Get("key"), string(ss.sc.PassHash(nil))))
 }

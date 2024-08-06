@@ -15,6 +15,8 @@ const (
 	Peers
 	MaxRecordSize
 	MaxStorageSize
+	NodeConfBucket
+	NodeID
 	// RequiresPayment ?
 	// Users ?
 	// UiDir ?
@@ -26,6 +28,8 @@ func (nck NodeConfKey) Keys() []string {
 		"path", "peers",
 		"max_record_size",
 		"max_storage_size",
+		"NodeConfBucket",
+		"ID",
 	}
 }
 
@@ -35,8 +39,10 @@ func (nck NodeConfKey) Defaults() []string {
 		SIGNAL.String(),
 		filepath.Join(SignalHomeDir(), SIGNAL.String()+".db"),
 		"[]",
-		"1000000000",  // 1gb max record default (change via api; will expose in ui)
-		"10000000000", // 10gb max record default
+		"1000000000",     // 1gb max record default (change via api; will expose in ui)
+		"10000000000",    // 10gb max record storage default
+		"NodeConfBucket", // the name of the bucket thats used to lookup existing nodes
+		"id",
 	}
 }
 
