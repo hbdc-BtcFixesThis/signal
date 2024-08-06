@@ -1,0 +1,65 @@
+.admin-key {
+	float: right;
+	position: relative;
+	width: 100%;
+	padding: 1.3em 2.5em 1em 2.5em;
+	text-align: center;
+}
+
+.storage-space-left {margin: .5em 1em 1em 1em}
+
+#settings,
+#settings-storage {
+	height: 0;
+	transition: all 1s ease;
+	overflow: hidden;
+}
+
+#settings.visible,
+#settings-storage {height: 15rem;}
+
+.select-db {margin: -1.3rem 0 0 0;}
+.server-settings {max-width: 100%;}
+
+.settings-auth,
+.settings-bitcoin,
+.settings-data-path,
+.settings-storage,
+.settings-peers {
+	position: relative;
+	width: 100%;
+	height: 15rem;
+	overflow: auto;
+}
+
+.settings-content {padding: .8rem;}
+.settings-auth::before,
+.settings-bitcoin::before,
+.settings-data-path::before,
+.settings-peers::before,
+.settings-storage::before {    
+	content: "";
+	opacity: .65;
+	z-index: -1;
+	height: 100%;
+	width: 100%;
+	background-size: 100% 100%;
+	position: absolute;
+	box-shadow: inset 0px 0px 50px 20px black;
+}
+
+.settings-auth::before {background-image: url('/images/key.jpg');}
+.settings-bitcoin::before {background-image: url('/images/compass.jpg');}
+.settings-data-path::before {background-image: url('/images/lattice.jpg');}
+.settings-peers::before {background-image: url('/images/rabbithole.jpg');}
+.settings-storage::before {background-image: url('/images/machine.jpg');}
+
+.expand-settings {
+	width: 100%;
+	margin:0;
+	display:flex;
+	align-items:center;
+	justify-content: center;
+	background-color: transparent;
+    height: 4rem;
+}
