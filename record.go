@@ -67,6 +67,21 @@ func (r *Record) AddSignal(s Signal) {
 
 func (r *Record) VBytes() uint64 { return uint64(binary.Size(r.Name) + binary.Size(r.Value)) }
 
+func (r *Record) Rank() float64 {
+	return float64(float64(r.TotalSats()) / float64(r.VBytes()))
+}
+
+func (r *Record) RankB() []byte {
+	return F64tb(r.Rank())
+}
+
+func (r *Record) RankForSatCount(sats uint64) float64 {
+	return float64(float64(sats) / float64(r.VBytes()))
+}
+func (r *Record) RankForSatCountB(sats uint64) []byte {
+	return F64tb(r.RankForSatCount(sats))
+}
+
 func (r *Record) Hash() string {
 	return SHA256(String2ByteSlice(SHA256(r.Name) + "::" + SHA256(r.Value)))
 }
