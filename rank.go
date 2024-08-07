@@ -12,7 +12,7 @@ type Rank struct {
 	Records []KV `json:"record_ids"`
 }
 
-const RankBucketName = "Ranked Signal Records" // key = r.TotalSats();  val = [list of records]
+const RankBucketName = "Rank" // key = r.TotalSats();  val = [list of records]
 
 // key = sats/byte; val = list of rec hashes
 type RankBucket struct{ *DB }
@@ -91,6 +91,10 @@ func (r *RankBucket) deleteRecFromRank(currentRankB, recId []byte) (*DataUpdates
 	}
 	if err := r.Get(qCurrentRank); err != nil {
 		return updates, err
+	}
+	if len(qCurrentRank.KV[0].Val) == 0 {
+		// for new records do nothing
+		return updates, nil
 	}
 
 	var currentRank Rank

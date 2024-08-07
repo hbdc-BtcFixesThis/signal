@@ -2,7 +2,6 @@ package main
 
 import (
 	"cmp"
-	"fmt"
 
 	"encoding/json"
 	"net/http"
@@ -22,18 +21,10 @@ func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println(updates)
-	if err := ss.buckets.db.MultiWrite(updates); false { // err != nil {
+	if err := ss.buckets.db.MultiWrite(updates); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	//fmt.Println("key: ", r.Key.String())
-	//fmt.Println("value: ", r.Value.String())
-	//fmt.Println("number of signals: ", len(r.Signals))
-	//fmt.Println("signature: ", r.Signals[0].Signature)
-	//fmt.Println("btc addr: ", r.Signals[0].BtcAddress)
-	//fmt.Println("sats: ", r.Signals[0].Sats)
 
 	json.NewEncoder(w).Encode(rec.ID())
 }
@@ -156,7 +147,6 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 	}
 
 	satsLeft := uint64(onChain) - SatsSignedFor(signals)
-	fmt.Println(onChain, satsLeft, SatsSignedFor(signals), s.Sats)
 	if (satsLeft - s.Sats - pendingSats) < s.Sats {
 		// pass in onchain total to avoid reaching out for it again
 		// TODO maybe cache these and update whenever blockheight
@@ -210,7 +200,8 @@ func (ss *SignalServer) insufficientFundsSignalReorg(s Signal, addrSignals []Sig
 		return &DataUpdates{}, ErrSignalTooWeak
 	}
 
-	return ss.updateRecordSignals([]Signal{s}, addrSignals[0:replaceUpTo])
+	u, err := ss.updateRecordSignals([]Signal{s}, addrSignals[0:replaceUpTo])
+	return u, err
 }
 
 func (ss *SignalServer) updateRecordSignals(signalsToAdd []Signal, signalsToDelete []Signal) (*DataUpdates, error) {
@@ -237,75 +228,64 @@ func (ss *SignalServer) updateRecordSignals(signalsToAdd []Signal, signalsToDele
 	addSigIds := make([]KV, len(signalsToAdd))
 	removeSigIds := make([]KV, len(signalsToDelete))
 
-	var signal Signal
-	for i := 0; i < len(signalsToAdd); i++ {
-		addSigIds[i] = signalsToAdd[i].ID()
-		signal = signalsToAdd[i]
-
+	updateStructs := func(signal Signal) error {
 		// for address updates
 		if _, found := addresses[signal.BtcAddress.String()]; !found {
 			address, err := ss.buckets.Address.GetAddress(signal.BtcAddress)
 			if err != nil {
-				return &DataUpdates{}, err
+				return err
 			}
 			addresses[signal.BtcAddress.String()] = &address
 		}
-		addresses[signal.BtcAddress.String()].PutIds([]KV{signal.ID()})
 
 		// for rank updates
 		if _, found := records[signal.RecID.String()]; !found {
 			r, err := ss.buckets.Record.GetRecordWithSignalsById(signal.RecID)
 			if err != nil {
-				return &DataUpdates{}, err
+				return err
 			}
 			records[signal.RecID.String()] = recordTracker{record: &r, oldTotal: r.TotalSats()}
 		}
+		return nil
 
+	}
+	for i := 0; i < len(signalsToAdd); i++ {
+		addSigIds[i] = signalsToAdd[i].ID()
+		if err := updateStructs(signalsToAdd[i]); err != nil {
+			return &DataUpdates{}, err
+		}
 		// recomputes record sats total in the record (can now be used to update rank)
 		records[signalsToAdd[i].RecID.String()].record.AddSignal(signalsToAdd[i])
+		addresses[signalsToAdd[i].BtcAddress.String()].PutIds([]KV{addSigIds[i]})
 	}
 
 	for i := 0; i < len(signalsToDelete); i++ {
 		removeSigIds[i] = signalsToDelete[i].ID()
-		signal = signalsToDelete[i]
-
-		// for address updates
-		if _, found := addresses[signal.BtcAddress.String()]; !found {
-			address, err := ss.buckets.Address.GetAddress(signal.BtcAddress)
-			if err != nil {
-				return &DataUpdates{}, err
-			}
-			addresses[signal.BtcAddress.String()] = &address
+		if err := updateStructs(signalsToDelete[i]); err != nil {
+			return &DataUpdates{}, err
 		}
-		addresses[signal.BtcAddress.String()].DeleteIds([]KV{signal.ID()})
-
-		// for rank updates
-		if _, found := records[signal.RecID.String()]; !found {
-			r, err := ss.buckets.Record.GetRecordWithSignalsById(signal.RecID)
-			if err != nil {
-				return &DataUpdates{}, err
-			}
-			records[signal.RecID.String()] = recordTracker{record: &r, oldTotal: r.TotalSats()}
-		}
-
 		// recomputes record sats total (can now be used to update rank)
-		records[signal.RecID.String()].record.RemoveSignal(signal.ID())
+		records[signalsToDelete[i].RecID.String()].record.RemoveSignal(removeSigIds[i])
+		addresses[signalsToDelete[i].BtcAddress.String()].DeleteIds([]KV{removeSigIds[i]})
 	}
 
 	// addresses updates
 	for addrId := range addresses {
-		putQuery, err := ss.buckets.Address.PutAddr(KV(addrId), *addresses[addrId])
-		if err != nil {
-			return &DataUpdates{}, err
+		if len(addresses[addrId].Signals) > 0 {
+			putQuery, err := ss.buckets.Address.PutAddr(KV(addrId), *addresses[addrId])
+			if err != nil {
+				return &DataUpdates{}, err
+			}
+			updates.AddPutQuery(putQuery)
+		} else {
+			updates.AddDeleteQuery(ss.buckets.Address.DeleteAddr(KV(addrId)))
 		}
-		updates.AddPutQuery(putQuery)
-
 	}
 
 	// signal updates
-	updates.AddDeleteQuery(ss.buckets.Signal.DeleteIds(removeSigIds))
-
-	// put
+	if len(removeSigIds) > 0 {
+		updates.AddDeleteQuery(ss.buckets.Signal.DeleteIds(removeSigIds))
+	}
 	signalUpdates, sigUpdatesErr := ss.buckets.Signal.PutSignals(signalsToAdd)
 	if sigUpdatesErr != nil {
 		return &DataUpdates{}, sigUpdatesErr
@@ -314,30 +294,25 @@ func (ss *SignalServer) updateRecordSignals(signalsToAdd []Signal, signalsToDele
 
 	// update records and ranks
 	for recId := range records {
-		if records[recId].record.TotalSats() > 0 {
-			putQuery, putRecErr := ss.buckets.Record.PutRec(*records[recId].record)
+		record := records[recId].record
+		if record.TotalSats() > 0 {
+			putQuery, putRecErr := ss.buckets.Record.PutRec(*record)
 			if putRecErr != nil {
 				return &DataUpdates{}, putRecErr
 			}
 			updates.AddPutQuery(putQuery)
 		} else {
-			updates.AddDeleteQuery(ss.buckets.Record.DeleteRec(String2ByteSlice(recId)))
+			updates.AddDeleteQuery(ss.buckets.Record.DeleteRec(record.ID()))
 		}
 
-		// rank updates
-		oldRank := F64tb(
-			float64(records[recId].oldTotal) / float64(records[recId].record.VBytes()),
+		rankUpdates, reRankErr := ss.buckets.Rank.ReRankRec(
+			// (old rank, new rank, record id)
+			record.RankForSatCountB(records[recId].oldTotal), record.RankB(), record.ID(),
 		)
-		newRank := F64tb(
-			float64(records[recId].record.TotalSats()) / float64(records[recId].record.VBytes()),
-		)
-
-		rankUpdates, reRankErr := ss.buckets.Rank.ReRankRec(oldRank, newRank, String2ByteSlice(recId))
 		if reRankErr != nil {
 			return &DataUpdates{}, reRankErr
-		} else {
-			updates.AppendUpdates(rankUpdates)
 		}
+		updates.AppendUpdates(rankUpdates)
 	}
 	return updates, nil
 }

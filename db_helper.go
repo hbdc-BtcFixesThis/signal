@@ -19,8 +19,8 @@ func (du *DataUpdates) AddPutQuery(q *Query)        { du.Put = append(du.Put, q)
 func (du *DataUpdates) AddPutQueries(q []*Query)    { du.Put = append(du.Put, q...) }
 
 func (du *DataUpdates) AppendUpdates(other *DataUpdates) {
-	du.Put = append(du.Put, other.Put...)
-	du.Delete = append(du.Delete, other.Delete...)
+	du.AddDeleteQueries(other.Delete)
+	du.AddPutQueries(other.Put)
 }
 
 // You can rollback the transaction at any point by returning an error.
@@ -179,12 +179,12 @@ func (db *DB) Delete(q *Query) error {
 func (db *DB) MultiWrite(updates *DataUpdates) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		for i := 0; i < len(updates.Delete); i++ {
-			if err := db.putTx(updates.Delete[i], tx); err != nil {
+			if err := db.deleteTx(updates.Delete[i], tx); err != nil {
 				return err
 			}
 		}
 		for i := 0; i < len(updates.Put); i++ {
-			if putErr := db.deleteTx(updates.Put[i], tx); putErr != nil {
+			if putErr := db.putTx(updates.Put[i], tx); putErr != nil {
 				return putErr
 			}
 		}
