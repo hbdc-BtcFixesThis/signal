@@ -2,12 +2,10 @@ package main
 
 import (
 	"cmp"
+	"slices"
 
 	"encoding/json"
 	"net/http"
-
-	"slices"
-	//"io"
 )
 
 func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
@@ -123,8 +121,12 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 	if s.Sats < 1 {
 		return updates, ErrorNeedMoreSats
 	}
+	// Bitcoin Testnet3
+	if err := s.CheckSignature(); err != nil {
+		return updates, err
+	}
 
-	onChain, chainCheckErr := BtcAddressTotal(ByteSlice2String(s.BtcAddress))
+	onChain, chainCheckErr := BtcAddressTotal(s.BtcAddress.String())
 	if chainCheckErr != nil {
 		return updates, chainCheckErr
 	}
