@@ -2,12 +2,10 @@ package main
 
 import (
 	"cmp"
+	"slices"
 
 	"encoding/json"
 	"net/http"
-
-	"slices"
-	//"io"
 )
 
 func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
@@ -29,6 +27,25 @@ func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(rec.ID())
 }
 
+func (ss *SignalServer) getPage(w http.ResponseWriter, r *http.Request) {
+	recordIds, err := ss.buckets.Rank.GetPageRecordIds([]byte{}, 10)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var records []Record
+	for i := 0; i < len(recordIds); i++ {
+		record, err := ss.buckets.Record.GetRecordById(recordIds[i])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		records = append(records, record)
+	}
+	json.NewEncoder(w).Encode(records)
+}
+
 func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 	// checking the actual size of the database will not really
 	// be possible because space gets preallocated to be used for
@@ -41,7 +58,7 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 	spaceLeft := Btoi(MaxStorageSize.DefaultBytes()) - spaceTaken // Btoi Byte to uint64
 	if spaceLeft < r.VBytes() {
 		satsPerByte := float64(r.Sats) / float64(r.VBytes())
-		if satsPerByte < ss.buckets.Rank.GetLastKeyAsFloat() {
+		if satsPerByte < ss.buckets.Rank.GetLowestRank() {
 			return &DataUpdates{}, ErrSignalTooWeak
 		}
 	}
@@ -123,8 +140,11 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 	if s.Sats < 1 {
 		return updates, ErrorNeedMoreSats
 	}
+	if err := s.CheckSignature(); err != nil {
+		return updates, err
+	}
 
-	onChain, chainCheckErr := BtcAddressTotal(ByteSlice2String(s.BtcAddress))
+	onChain, chainCheckErr := BtcAddressTotal(s.BtcAddress.String())
 	if chainCheckErr != nil {
 		return updates, chainCheckErr
 	}
@@ -315,20 +335,4 @@ func (ss *SignalServer) updateRecordSignals(signalsToAdd []Signal, signalsToDele
 		updates.AppendUpdates(rankUpdates)
 	}
 	return updates, nil
-}
-
-func (ss *SignalServer) getPage(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode([]map[string]string{
-		{
-			"id":        "monolith",
-			"content":   "If bitcoin could speak, what would it say?",
-			"signal":    ".002 btc/byte",
-			"total_btc": "0.0011",
-		}, {
-			"id":        "monolith",
-			"content":   "If bitcoin could speak, what would it say?",
-			"signal":    ".002 btc/byte",
-			"total_btc": "0.0011",
-		},
-	})
 }

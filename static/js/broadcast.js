@@ -9,18 +9,18 @@ let signalSignaturerMessage = document.getElementById('signal-signature-message'
 
 const newSignalSignatureMessage = `This is not a bitcoin transaction!
 
-For as long as the there are funds left
-unspent in bitcoin wallet address
+For as long as the there are at least
 
-{bitcion address}
+SATS: {numSats}
 
-may {numSats} sats of the balance be
-used to spread the following record
+unspent in Bitcoin
 
-{name label}:
-{name}
-{content label}:
-{content}
+ADDRESS: {bitcion address}
+
+may they be used to spread
+
+RECORD ID: {record id}
+
 
 Peace and love freaks`
 
@@ -46,40 +46,22 @@ function failedToAddRecord(xhr) {
 	showErrorBanner(xhr.responseText);
 }
 
-function updateNewSignalSignatureMessage(name, content, numSats, nLabel, cLabel, btcAddr) {
+function updateNewSignalSignatureMessage(recordId, numSats, btcAddr) {
 	var newMessageToSign = newSignalSignatureMessage.slice().replace(
-		"{name}", name).replace(
-		"{content}", content).replace(
+		"{record id}", recordId).replace(
 		"{numSats}", numSats).replace(
-		"{name label}", nLabel).replace(
-		"{content label}", cLabel).replace(
 		"{bitcion address}", btcAddr,
 	);
 	recordState.signatureMessage.value = newMessageToSign;
 }
 
 function updateSignalSignaturerMessage() {
-	const hashLength = 64;
-
 	var name = recordState.name.value;
-	var nameLabel = 'RECORD NAME';
-
 	var content = recordState.content.value;
-	var contentLabel = 'RECORD CONTENT';
-
-	var hashLabel = ' HASH/FINGERPRINT'
-
-	if (name.length > hashLength) {
-		name = sha256(recordState.name.value);
-		nameLabel += hashLabel;
-	}
-	if (content.length > hashLength) {
-		content = sha256(recordState.content.value)
-		contentLabel += hashLabel
-	}
 	updateNewSignalSignatureMessage(
-		name, content, recordState.numSats.value,
-		nameLabel, contentLabel, recordState.address.value,
+		sha256(sha256(name) + '::' + sha256(content)),
+		recordState.numSats.value,
+		recordState.address.value,
 	);
 }
 

@@ -19,9 +19,11 @@ type RankBucket struct{ *DB }
 
 func (r *RankBucket) Name() []byte { return []byte(RankBucketName) }
 
-func (r *RankBucket) GetLastKeyAsFloat() float64 {
+func (r *RankBucket) GetLowestRank() float64  { return r.getLast(true) }
+func (r *RankBucket) GetHighestRank() float64 { return r.getLast(false) }
+func (r *RankBucket) getLast(ascending bool) float64 {
 	pq := &PageQuery{
-		Ascending: true,
+		Ascending: ascending,
 		Query: &Query{
 			Bucket:                  r.Name(),
 			KV:                      make([]Pair, 1),
@@ -157,4 +159,71 @@ func (r *RankBucket) ReRankRec(currentRankB []byte, newRankB []byte, recId KV) (
 	qNewRank.KV[0].Val = b
 	updates.AddPutQuery(qNewRank)
 	return updates, nil
+}
+
+func (r *RankBucket) GetPageRecordIds(last []byte, size int) ([][]byte, error) {
+	pq := &PageQuery{
+		Query: &Query{
+			Bucket:                  r.Name(),
+			KV:                      make([]Pair, 1),
+			CreateBucketIfNotExists: true,
+		},
+	}
+
+	results := [][]byte{}
+	var rank Rank
+out:
+	for len(results) < size {
+		if len(last) > 0 {
+			// might be a problem
+			pq.StartFrom = KV(last)
+		}
+		r.GetPage(pq)
+		if len(pq.KV[0].Val) == 0 {
+			break
+		}
+
+		err := json.Unmarshal(pq.KV[0].Val, &rank)
+		if err != nil {
+			return results, err
+		}
+		newRecFound := true
+		for i := 0; i < len(rank.Records); i++ {
+			// including this condition means there will
+			// need to be a way to determine the last
+			// record the user lands on. Multiple records
+			// can be in a rank and if the size of the
+			// results is full while the rank has records
+			// left in it then as of right now they will
+			// be missed for the next page load if this
+			// condition is re-introduced
+			//
+			// if len(results) == size {
+			//	break out
+			// }
+			for j := 0; j < len(results); j++ {
+				if ByteSlice2String(results[j]) == ByteSlice2String(rank.Records[i]) {
+					newRecFound = false
+				}
+			}
+			if newRecFound {
+				results = append(results, rank.Records[i])
+			} else {
+				// if there are less records then the size
+				// specified and this condition is not put
+				// in then it will continue to add the same
+				// record till the results reach the size
+				// specified. If there are more records then
+				// the size specified but
+				// # records % size != 0
+				// and the last page is being queried then
+				// it will go back to the beginning which
+				// is probably fine for now
+				break out
+			}
+		}
+		last = pq.Query.KV[0].Key
+	}
+
+	return results, nil
 }

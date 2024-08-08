@@ -1,6 +1,13 @@
 package main
 
-import "encoding/json"
+import (
+	"fmt"
+
+	"encoding/json"
+
+	"github.com/bitonicnl/verify-signed-message/pkg"
+	"github.com/btcsuite/btcd/chaincfg"
+)
 
 const SignalBucketName = "Signals"
 
@@ -42,6 +49,43 @@ type Signal struct {
 func (s *Signal) Hash() string { return SHA256(s.Signature) }
 
 func (s *Signal) ID() KV { return String2ByteSlice(s.Hash()) }
+
+func (s *Signal) MessageToSign() string {
+	message := `This is not a bitcoin transaction!
+
+For as long as the there are at least
+
+SATS: %v
+
+unspent in Bitcoin
+
+ADDRESS: %s
+
+may they be used to spread
+
+RECORD ID: %s
+
+
+Peace and love freaks`
+
+	return fmt.Sprintf(message, s.Sats, s.BtcAddress, s.RecID)
+}
+
+func (s *Signal) CheckSignature() error {
+	// Bitcoin Testnet3
+	valid, err := verifier.VerifyWithChain(verifier.SignedMessage{
+		Address:   s.BtcAddress.String(),
+		Message:   s.MessageToSign(),
+		Signature: s.Signature.String(),
+	}, &chaincfg.MainNetParams) // &chaincfg.TestNet3Params)
+	if err != nil {
+		return err
+	}
+	if !valid {
+		return ErrorInvalidSignature
+	}
+	return nil
+}
 
 // hash signature to save some space
 // key = SHA256(Signature); val = serialized signal

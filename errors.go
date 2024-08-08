@@ -9,4 +9,5 @@ var (
 	ErrorRecordTooLarge         = errors.New("Record too large.")
 	ErrorInvalidAddress         = errors.New("Invalid Bitcoin address.")
 	ErrorNeedMoreSats           = errors.New("Signal needs more sats.")
+	ErrorInvalidSignature       = errors.New("Invalid signature.")
 )
