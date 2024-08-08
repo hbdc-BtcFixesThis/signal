@@ -77,7 +77,7 @@ func (s *Signal) CheckSignature() error {
 		Address:   s.BtcAddress.String(),
 		Message:   s.MessageToSign(),
 		Signature: s.Signature.String(),
-	}, &chaincfg.TestNet3Params)
+	}, &chaincfg.MainNetParams) // &chaincfg.TestNet3Params)
 	if err != nil {
 		return err
 	}
