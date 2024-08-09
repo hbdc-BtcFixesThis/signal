@@ -2,8 +2,8 @@ var recordTableID = 'record-tbl-body-content';
 var recordTableHeaderID = 'record-tbl-header-tr';
 var results = {
 	'headers': [
-		{'key': 'id',           'display_header': 'Name'},
-		{'key': 'signal',       'display_header': 'Signal'},
+		{'key': 'key',           'display_header': 'Key'},
+		{'key': 'value',         'display_header': 'Value'},
 	],
 };
 
@@ -18,7 +18,7 @@ function genHeaders(headers) {
 
 function genRow(row, headers) {
 	// follow same order specified for headers
-	var rowHTML = '';
+	var rowHTML = ''
 	for (header of headers) {
 		rowHTML += '<td>' + row[header.key] + '</td>';
 	}
@@ -26,10 +26,15 @@ function genRow(row, headers) {
 }
 
 function genRows(headers, rows) {
-	var modalTemplateHtml = '';
+	// var modalTemplateHtml = '';
 	var tbl = document.getElementById(recordTableID);
 	for (row of rows) {
-		tbl.innerHTML += '<tr class="trigger-modal id="' + row.id + '>' + genRow(row, headers) + '</tr>';
+		tbl.innerHTML += '<div class="top-left">' +
+					  		'sats: ' + row.sats +
+				  		 '</div>' +
+						 '<tr class="trigger-modal" id="' + row[headers[0].key]+ '">' +
+							genRow(row, headers) +
+						 '</tr>';
 	}
 }
 

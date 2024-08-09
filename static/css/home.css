@@ -76,7 +76,7 @@ th{
 	text-transform: uppercase;
 }
 td{
-	padding: .8rem;
+	padding: .7rem;
 	text-align: left;
 	vertical-align:middle;
 	font-weight: 300;
@@ -147,6 +147,14 @@ textarea {
 .w50 {width: 50%;}
 .h100 {height: 100%;}
 .hide {display: none;}
+
+.top-left {
+	vertical-align: top;
+    text-align: left;
+    font-size: x-small;
+    color: var(--orange);;
+	padding-left: .2rem;
+}
 
 .drop-down {
     color: var(--orange);;

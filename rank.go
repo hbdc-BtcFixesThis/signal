@@ -189,6 +189,7 @@ out:
 		}
 		newRecFound := true
 		for i := 0; i < len(rank.Records); i++ {
+			// NOTE
 			// including this condition means there will
 			// need to be a way to determine the last
 			// record the user lands on. Multiple records
@@ -201,6 +202,7 @@ out:
 			// if len(results) == size {
 			//	break out
 			// }
+
 			for j := 0; j < len(results); j++ {
 				if ByteSlice2String(results[j]) == ByteSlice2String(rank.Records[i]) {
 					newRecFound = false
