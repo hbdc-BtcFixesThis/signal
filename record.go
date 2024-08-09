@@ -3,14 +3,15 @@ package main
 import (
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 )
 
 // content of record
 // the result of RecordHash below is used as the id for these records
 type Record struct {
 	Sats      uint64   `json:"sats"`
-	Name      KV       `json:"key"`
-	Value     KV       `json:"value"`
+	Name      string   `json:"key"`
+	Value     string   `json:"value"`
 	Signals   []Signal `json:"signals"`
 	SignalIds []KV     `json:"signal_ids"` // ids for signals in SignalBucket
 }
@@ -65,7 +66,11 @@ func (r *Record) AddSignal(s Signal) {
 	r.Sats = r.TotalSats()
 }
 
-func (r *Record) VBytes() uint64 { return uint64(binary.Size(r.Name) + binary.Size(r.Value)) }
+func (r *Record) VBytes() uint64 {
+	nSize := binary.Size(String2ByteSlice(r.Name))
+	vSize := binary.Size(String2ByteSlice(r.Value))
+	return uint64(nSize + vSize)
+}
 
 func (r *Record) Rank() float64 {
 	return float64(float64(r.TotalSats()) / float64(r.VBytes()))
@@ -83,7 +88,7 @@ func (r *Record) RankForSatCountB(sats uint64) []byte {
 }
 
 func (r *Record) Hash() string {
-	return SHA256(String2ByteSlice(SHA256(r.Name) + "::" + SHA256(r.Value)))
+	return SHA256(String2ByteSlice(SHA256(String2ByteSlice(r.Name)) + "::" + SHA256(String2ByteSlice(r.Value))))
 }
 
 func (r *Record) ID() []byte { return String2ByteSlice(r.Hash()) }
@@ -101,6 +106,32 @@ func (r *RecordBucket) GetId(id []byte) ([]byte, error) {
 	}
 	err := r.Get(query)
 	return query.KV[0].Val, err
+}
+
+func (r *RecordBucket) GetRecordById(id []byte) (Record, error) {
+	var signalRec Record
+
+	rBytes, err := r.GetId(id)
+	if err != nil {
+		return signalRec, err
+	}
+	fmt.Println(ByteSlice2String(rBytes))
+	err = json.Unmarshal(rBytes, &signalRec)
+
+	return signalRec, err
+}
+
+func (r *RecordBucket) GetRecordWithSignalsById(id []byte) (Record, error) {
+	record, err := r.GetRecordById(id)
+	if err != nil {
+		return record, err
+	}
+	signals, err := (&SignalBucket{r.DB}).GetSignalsByIds(record.SignalIds)
+	if err != nil {
+		return record, err
+	}
+	record.Signals = signals
+	return record, nil
 }
 
 func (r *RecordBucket) PutRec(rec Record) (*Query, error) {
@@ -174,48 +205,4 @@ func (r *RecordBucket) DeleteSignalsFromRecord(id []byte, signalIds [][]byte) (*
 	}
 	updates.AddPutQuery(putQuery)
 	return updates, sigRec.Sats, nil
-}
-
-func (r *RecordBucket) GetRecordById(id []byte) (Record, error) {
-	var signalRec Record
-
-	rBytes, err := r.GetId(id)
-	if err != nil {
-		return signalRec, err
-	}
-	err = json.Unmarshal(rBytes, &signalRec)
-
-	return signalRec, err
-}
-
-func (r *RecordBucket) GetRecordWithSignalsById(id []byte) (Record, error) {
-	record, err := r.GetRecordById(id)
-	if err != nil {
-		return record, err
-	}
-	signals, err := (&SignalBucket{r.DB}).GetSignalsByIds(record.SignalIds)
-	if err != nil {
-		return record, err
-	}
-	record.Signals = signals
-	return record, nil
-}
-
-func (r *Record) MessageToBeSigned() string {
-	return `This is not a bitcoin transaction!
-
-For as long as the there are funds left
-unspent in bitcoin wallet address
-
-{bitcion address}
-
-{amount} sats of the balance will be
-used to spread the following record
-
-{name label}:
-{name}
-{content label}:
-{content}
-
-Peace and love freaks`
 }

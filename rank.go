@@ -19,9 +19,9 @@ type RankBucket struct{ *DB }
 
 func (r *RankBucket) Name() []byte { return []byte(RankBucketName) }
 
-func (r *RankBucket) GetLowestRank() float64  { return r.getLast(true) }
-func (r *RankBucket) GetHighestRank() float64 { return r.getLast(false) }
-func (r *RankBucket) getLast(ascending bool) float64 {
+func (r *RankBucket) GetLowestRank() (float64, error)  { return r.getLast(true) }
+func (r *RankBucket) GetHighestRank() (float64, error) { return r.getLast(false) }
+func (r *RankBucket) getLast(ascending bool) (float64, error) {
 	pq := &PageQuery{
 		Ascending: ascending,
 		Query: &Query{
@@ -33,7 +33,7 @@ func (r *RankBucket) getLast(ascending bool) float64 {
 
 	r.GetPage(pq)
 	if len(pq.KV[0].Val) == 0 {
-		return 0.0
+		return 0.0, nil
 	}
 
 	return F64fb(pq.KV[0].Key)
@@ -189,6 +189,7 @@ out:
 		}
 		newRecFound := true
 		for i := 0; i < len(rank.Records); i++ {
+			// NOTE
 			// including this condition means there will
 			// need to be a way to determine the last
 			// record the user lands on. Multiple records
@@ -201,6 +202,7 @@ out:
 			// if len(results) == size {
 			//	break out
 			// }
+
 			for j := 0; j < len(results); j++ {
 				if ByteSlice2String(results[j]) == ByteSlice2String(rank.Records[i]) {
 					newRecFound = false
