@@ -241,7 +241,9 @@ textarea {
     padding: 1rem 1.5rem;
     width: 24rem;
 	max-width: 85%;
+	height: 25rem;
     border-radius: 0.5rem;
+	overflow: scroll; 
 }
 
 .show-modal {

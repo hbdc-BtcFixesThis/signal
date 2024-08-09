@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"math"
+	"strconv"
 	"unsafe"
 
 	"encoding/binary"
@@ -23,12 +23,13 @@ func F64tb(f float64) []byte {
 }
 
 // float 64 from bytes
-func F64fb(b []byte) float64 {
-	return math.Float64frombits(Btoi(b))
+func F64fb(b []byte) (float64, error) {
+	return strconv.ParseFloat(string(b), 64)
 }
 
-func Btoi(b []byte) uint64 {
-	return binary.BigEndian.Uint64(b)
+func Btoi(b []byte) (uint64, error) {
+	i, err := strconv.Atoi(ByteSlice2String(b))
+	return uint64(i), err
 }
 
 func Itob(v uint64) []byte {

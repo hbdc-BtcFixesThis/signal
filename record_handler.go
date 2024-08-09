@@ -6,7 +6,29 @@ import (
 
 	"encoding/json"
 	"net/http"
+
+	bolt "go.etcd.io/bbolt"
 )
+
+func (ss *SignalServer) getPage(w http.ResponseWriter, r *http.Request) {
+	recordIds, err := ss.buckets.Rank.GetPageRecordIds([]byte{}, 10)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	var records []Record
+	for i := 0; i < len(recordIds); i++ {
+		record, err := ss.buckets.Record.GetRecordById(recordIds[i])
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+		records = append(records, record)
+	}
+
+	json.NewEncoder(w).Encode(records)
+}
 
 func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
 	var rec Record
@@ -27,25 +49,6 @@ func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(rec.ID())
 }
 
-func (ss *SignalServer) getPage(w http.ResponseWriter, r *http.Request) {
-	recordIds, err := ss.buckets.Rank.GetPageRecordIds([]byte{}, 10)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	var records []Record
-	for i := 0; i < len(recordIds); i++ {
-		record, err := ss.buckets.Record.GetRecordById(recordIds[i])
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		records = append(records, record)
-	}
-	json.NewEncoder(w).Encode(records)
-}
-
 func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 	// checking the actual size of the database will not really
 	// be possible because space gets preallocated to be used for
@@ -54,16 +57,36 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 	// the file size will not tell you how much unallocated space
 	// is left. Not sure which approach to take yet.
 
-	spaceTaken := uint64(0)                                       // TODO check get size of db
-	spaceLeft := Btoi(MaxStorageSize.DefaultBytes()) - spaceTaken // Btoi Byte to uint64
+	spaceTaken := uint64(0) // TODO check get size of db
+	maxDbSize, _ := Btoi(MaxStorageSize.DefaultBytes())
+	spaceLeft := maxDbSize - spaceTaken // Btoi Byte to uint64
 	if spaceLeft < r.VBytes() {
 		satsPerByte := float64(r.Sats) / float64(r.VBytes())
-		if satsPerByte < ss.buckets.Rank.GetLowestRank() {
+		lr, err := ss.buckets.Rank.GetLowestRank()
+		if err != nil {
+			return &DataUpdates{}, err
+		}
+		if satsPerByte < lr {
 			return &DataUpdates{}, ErrSignalTooWeak
 		}
 	}
 
-	if Btoi(MaxRecordSize.DefaultBytes()) < r.VBytes() {
+	// check happens in db but why not fail early
+	if len(r.Name) > bolt.MaxKeySize {
+		return &DataUpdates{}, bolt.ErrKeyTooLarge
+	}
+	if int64(len(r.Value)) > bolt.MaxValueSize {
+		// TODO (maybe shouldnt fail here and instead
+		// if its a valid signal with enough sats to
+		// make the cut then store in fail?
+		// NOTE if the todo was done it would probably
+		// be best to set the location of the files
+		// stored in a user specified location that
+		// they can update through the ui
+		return &DataUpdates{}, bolt.ErrValueTooLarge
+	}
+	m, _ := Btoi(MaxRecordSize.DefaultBytes())
+	if m < r.VBytes() {
 		return &DataUpdates{}, ErrorRecordTooLarge
 	}
 	isNewRec := false
