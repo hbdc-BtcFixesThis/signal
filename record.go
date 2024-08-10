@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 )
 
-const RecordBucketName = "Rank"
+const RecordBucketName = "Record"
 
 // content of record
 // the result of RecordHash below is used as the id for these records

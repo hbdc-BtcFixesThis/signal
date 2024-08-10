@@ -2,7 +2,6 @@ package main
 
 import (
 	"cmp"
-	"fmt"
 	"slices"
 
 	"encoding/json"
@@ -95,6 +94,9 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 	if v, err := ss.buckets.Record.GetId(r.ID()); err != nil {
 		return &DataUpdates{}, err
 	} else if len(v) == 0 {
+		r.VBytes = r.vBytes()
+		r.VHash = r.vHash()
+
 		// temp remove them when savin
 		signalIds := r.SignalIds
 		r.SignalIds = []KV{}
@@ -144,6 +146,14 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 		}
 		updates.AppendUpdates(treeUpdates)
 	}
+	putVQuery, putRecVErr := ss.buckets.Value.PutRecV(RecordValue{
+		RecID: r.ID(),
+		Value: r.Value,
+	})
+	if putRecVErr != nil {
+		return &DataUpdates{}, putRecVErr
+	}
+	updates.AddPutQuery(putVQuery)
 	return updates, nil
 }
 
@@ -182,7 +192,6 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 	// signal
 	signals, retrieveSignalsErr := ss.buckets.Address.GetSignals(s.BtcAddress)
 	if retrieveSignalsErr != nil {
-		fmt.Println("retrieveSignalsErr: ", retrieveSignalsErr)
 		return updates, retrieveSignalsErr
 	}
 	for i := 0; i < len(signals); i++ {
@@ -342,30 +351,21 @@ func (ss *SignalServer) updateRecordSignals(signalsToAdd []Signal, signalsToDele
 	for recId := range records {
 		record := records[recId].record
 		if record.TotalSats() > 0 {
-			record.VBytes = record.vBytes()
-			record.VHash = record.vHash()
 			putQuery, putRecErr := ss.buckets.Record.PutRec(*record)
 			if putRecErr != nil {
 				return &DataUpdates{}, putRecErr
 			}
 			updates.AddPutQuery(putQuery)
-			putVQuery, putRecVErr := ss.buckets.Value.PutRecV(RecordValue{
-				RecID: record.ID(),
-				Value: record.Value,
-			})
-			if putRecVErr != nil {
-				return &DataUpdates{}, putRecErr
-			}
-			updates.AddPutQuery(putVQuery)
 		} else {
 			updates.AddDeleteQuery(ss.buckets.Record.DeleteRec(record.ID()))
 			// share the same record  id
 			updates.AddDeleteQuery(ss.buckets.Value.DeleteV(record.ID()))
 		}
 
+		oldRank := record.RankForSatCountB(records[recId].oldTotal)
 		rankUpdates, reRankErr := ss.buckets.Rank.ReRankRec(
 			// (old rank, new rank, record id)
-			record.RankForSatCountB(records[recId].oldTotal), record.RankB(), record.ID(),
+			oldRank, record.RankB(), record.ID(),
 		)
 		if reRankErr != nil {
 			return &DataUpdates{}, reRankErr

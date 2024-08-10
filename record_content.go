@@ -8,8 +8,8 @@ import (
 const ValueBucketName = "Value"
 
 type RecordValue struct {
-	Value string `json:"value"`
 	RecID []byte `json:"rid,omitempty"`
+	Value string `json:"value"`
 }
 
 type ValueBucket struct{ *DB }
