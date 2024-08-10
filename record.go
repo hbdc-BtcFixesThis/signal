@@ -3,17 +3,79 @@ package main
 import (
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 )
+
+const RecordBucketName = "Rank"
 
 // content of record
 // the result of RecordHash below is used as the id for these records
 type Record struct {
 	Sats      uint64   `json:"sats"`
-	Name      string   `json:"key"`
-	Value     string   `json:"value"`
-	Signals   []Signal `json:"signals"`
+	Name      string   `json:"name"`
+	Value     string   `json:"value,omitempty"` // not stored
+	VBytes    uint64   `json:"vbytes"`          // combined
+	VHash     string   `json:"vhash"`           // hash of value
+	Signals   []Signal `json:"signals,omitempty"`
 	SignalIds []KV     `json:"signal_ids"` // ids for signals in SignalBucket
+}
+
+type SerializedRecord struct {
+	Sats      uint64 `json:"sats"`
+	Name      string `json:"name"`
+	VBytes    uint64 `json:"vbytes"`
+	VHash     string `json:"vhash"`
+	SignalIds []KV   `json:"sids"`
+}
+
+func (r *Record) ID() []byte { return String2ByteSlice(r.Hash()) }
+
+func (r *Record) Hash() string {
+	NHash := SHA256(String2ByteSlice(r.Name))
+	return SHA256(String2ByteSlice(NHash + "::" + r.VHash))
+}
+
+// --------------------------------------------
+// NOTE
+// cant rely on value being here used as helper
+//
+//	helpers for incoming records
+func (r *Record) vHash() string { return SHA256(String2ByteSlice(r.Value)) }
+
+func (r *Record) vBytes() uint64 {
+	if len(r.Value) > 0 {
+		nSize := binary.Size(String2ByteSlice(r.Name))
+		vSize := binary.Size(String2ByteSlice(r.Value))
+		return uint64(nSize + vSize)
+	}
+	return r.VBytes
+}
+
+//  --------------------------------------------
+
+func (r *Record) Rank() float64 {
+	return float64(float64(r.TotalSats()) / float64(r.VBytes))
+}
+
+func (r *Record) RankB() []byte {
+	return F64tb(r.Rank())
+}
+
+func (r *Record) RankForSatCount(sats uint64) float64 {
+	return float64(float64(sats) / float64(r.VBytes))
+}
+func (r *Record) RankForSatCountB(sats uint64) []byte {
+	return F64tb(r.RankForSatCount(sats))
+}
+
+func (r *Record) toBytes() ([]byte, error) {
+	b, err := json.Marshal(SerializedRecord{
+		Sats:      r.Sats,
+		Name:      r.Name,
+		VBytes:    r.VBytes,
+		VHash:     r.VHash,
+		SignalIds: r.SignalIds,
+	})
+	return b, err
 }
 
 func (r *Record) TotalSats() uint64 {
@@ -66,37 +128,10 @@ func (r *Record) AddSignal(s Signal) {
 	r.Sats = r.TotalSats()
 }
 
-func (r *Record) VBytes() uint64 {
-	nSize := binary.Size(String2ByteSlice(r.Name))
-	vSize := binary.Size(String2ByteSlice(r.Value))
-	return uint64(nSize + vSize)
-}
-
-func (r *Record) Rank() float64 {
-	return float64(float64(r.TotalSats()) / float64(r.VBytes()))
-}
-
-func (r *Record) RankB() []byte {
-	return F64tb(r.Rank())
-}
-
-func (r *Record) RankForSatCount(sats uint64) float64 {
-	return float64(float64(sats) / float64(r.VBytes()))
-}
-func (r *Record) RankForSatCountB(sats uint64) []byte {
-	return F64tb(r.RankForSatCount(sats))
-}
-
-func (r *Record) Hash() string {
-	return SHA256(String2ByteSlice(SHA256(String2ByteSlice(r.Name)) + "::" + SHA256(String2ByteSlice(r.Value))))
-}
-
-func (r *Record) ID() []byte { return String2ByteSlice(r.Hash()) }
-
 // key = r.RecordHash(); val = serialize record
 type RecordBucket struct{ *DB }
 
-func (r *RecordBucket) Name() []byte { return []byte("Record") }
+func (r *RecordBucket) Name() []byte { return []byte(RecordBucketName) }
 
 func (r *RecordBucket) GetId(id []byte) ([]byte, error) {
 	query := &Query{
@@ -115,7 +150,6 @@ func (r *RecordBucket) GetRecordById(id []byte) (Record, error) {
 	if err != nil {
 		return signalRec, err
 	}
-	fmt.Println(ByteSlice2String(rBytes))
 	err = json.Unmarshal(rBytes, &signalRec)
 
 	return signalRec, err
@@ -135,10 +169,7 @@ func (r *RecordBucket) GetRecordWithSignalsById(id []byte) (Record, error) {
 }
 
 func (r *RecordBucket) PutRec(rec Record) (*Query, error) {
-	// hacky. should omit signals if they exist in the record
-	rec.Signals = []Signal{}
-
-	b, err := json.Marshal(rec)
+	b, err := rec.toBytes()
 	if err != nil {
 		return &Query{}, err
 	}

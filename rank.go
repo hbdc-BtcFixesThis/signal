@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"encoding/json"
 )
 
@@ -58,7 +60,7 @@ func (r *RankBucket) PutId(id, val []byte) *Query {
 }
 
 func (r *RankBucket) PutSignalRec(sr Record) (*Query, error) {
-	key := F64tb(float64(sr.Sats) / float64(sr.VBytes()))
+	key := F64tb(float64(sr.Sats) / float64(sr.VBytes))
 	rankB, getErr := r.GetId(key)
 	if getErr != nil {
 		return &Query{}, getErr
@@ -183,10 +185,12 @@ out:
 			break
 		}
 
+		fmt.Println("GetPageRecordIds: ", pq.KV[0].Val)
 		err := json.Unmarshal(pq.KV[0].Val, &rank)
 		if err != nil {
 			return results, err
 		}
+		fmt.Println("GetPageRecordIds: ", pq.KV[0].Val)
 		newRecFound := true
 		for i := 0; i < len(rank.Records); i++ {
 			// NOTE

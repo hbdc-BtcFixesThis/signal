@@ -44,6 +44,7 @@ type SignalServer struct {
 
 type SignalBuckets struct {
 	Record  *RecordBucket
+	Value   *ValueBucket
 	Signal  *SignalBucket
 	Address *AddressBucket
 	Rank    *RankBucket
@@ -76,6 +77,7 @@ func newSignalServer() (*SignalServer, error) {
 	nc := &NodeConf{dbwc}
 	sb := &SignalBuckets{
 		Record:  &RecordBucket{sdb},
+		Value:   &ValueBucket{sdb},
 		Signal:  &SignalBucket{sdb},
 		Address: &AddressBucket{sdb},
 		Rank:    &RankBucket{sdb},

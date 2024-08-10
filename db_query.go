@@ -23,10 +23,15 @@ func (kv KV) MarshalJSON() ([]byte, error) {
 
 func (kv *KV) UnmarshalJSON(b []byte) error {
 	var data string
+	fmt.Println("----------------------------------")
+	fmt.Println("UnmarshalJSON data: ", data)
+	fmt.Println("UnmarshalJSON data: ", string(b))
 	if err := json.Unmarshal(b, &data); err != nil {
 		return err
 	}
 
+	fmt.Println("UnmarshalJSON data: ", data)
+	fmt.Println("----------------------------------")
 	*kv = String2ByteSlice(data)
 	return nil
 }
