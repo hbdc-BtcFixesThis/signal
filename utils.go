@@ -32,6 +32,9 @@ func Btoi(b []byte) (uint64, error) {
 	return uint64(i), err
 }
 
+// NOTE this is for ids in the db. This may not even
+// be in use but when generating a new id this is
+// called. Do not expect this to be the reverse of
 func Itob(v uint64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, v)

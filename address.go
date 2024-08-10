@@ -1,6 +1,9 @@
 package main
 
-import "encoding/json"
+import (
+	"encoding/json"
+	//"fmt"
+)
 
 type Address struct {
 	Signals []KV `json:"sig_ids"` // ids of signals (signed messages)
@@ -172,13 +175,14 @@ func (ab *AddressBucket) GetSignals(address []byte) ([]Signal, error) {
 		return []Signal{}, nil
 	}
 
-	var signalIds []KV
-	if err := json.Unmarshal(signalBytes, &signalIds); len(signalIds) == 0 || err != nil {
+	var a Address
+	if err := json.Unmarshal(signalBytes, &a); len(a.Signals) == 0 || err != nil {
+
 		return []Signal{}, err
 	}
 
 	sb := SignalBucket{ab.DB}
-	signals, err := sb.GetSignalsByIds(signalIds)
+	signals, err := sb.GetSignalsByIds(a.Signals)
 	if err != nil {
 		return []Signal{}, err
 	}

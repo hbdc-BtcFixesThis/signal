@@ -3,7 +3,7 @@ var recordTableHeaderID = 'record-tbl-header-tr';
 var results = {
 	'headers': [
 		{'key': 'key',           'display_header': 'Key'},
-		{'key': 'value',         'display_header': 'Value'},
+		// {'key': 'value',         'display_header': 'Value'},
 	],
 };
 
@@ -31,6 +31,9 @@ function genRows(headers, rows) {
 	for (row of rows) {
 		tbl.innerHTML += '<div class="top-left">' +
 					  		'sats: ' + row.sats +
+				  		 '</div>' +
+						 '<div class="top-left">' +
+					  		'vBytes: ' + row.vbytes +
 				  		 '</div>' +
 						 '<tr class="trigger-modal" id="' + row[headers[0].key]+ '">' +
 							genRow(row, headers) +

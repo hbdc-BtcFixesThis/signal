@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
 
 	"encoding/json"
@@ -60,8 +61,8 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 	spaceTaken := uint64(0) // TODO check get size of db
 	maxDbSize, _ := Btoi(MaxStorageSize.DefaultBytes())
 	spaceLeft := maxDbSize - spaceTaken // Btoi Byte to uint64
-	if spaceLeft < r.VBytes() {
-		satsPerByte := float64(r.Sats) / float64(r.VBytes())
+	if spaceLeft < r.vBytes() {
+		satsPerByte := float64(r.Sats) / float64(r.vBytes())
 		lr, err := ss.buckets.Rank.GetLowestRank()
 		if err != nil {
 			return &DataUpdates{}, err
@@ -86,9 +87,10 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 		return &DataUpdates{}, bolt.ErrValueTooLarge
 	}
 	m, _ := Btoi(MaxRecordSize.DefaultBytes())
-	if m < r.VBytes() {
+	if m < r.vBytes() {
 		return &DataUpdates{}, ErrorRecordTooLarge
 	}
+
 	isNewRec := false
 	if v, err := ss.buckets.Record.GetId(r.ID()); err != nil {
 		return &DataUpdates{}, err
@@ -180,6 +182,7 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 	// signal
 	signals, retrieveSignalsErr := ss.buckets.Address.GetSignals(s.BtcAddress)
 	if retrieveSignalsErr != nil {
+		fmt.Println("retrieveSignalsErr: ", retrieveSignalsErr)
 		return updates, retrieveSignalsErr
 	}
 	for i := 0; i < len(signals); i++ {
@@ -290,8 +293,8 @@ func (ss *SignalServer) updateRecordSignals(signalsToAdd []Signal, signalsToDele
 			records[signal.RecID.String()] = recordTracker{record: &r, oldTotal: r.TotalSats()}
 		}
 		return nil
-
 	}
+
 	for i := 0; i < len(signalsToAdd); i++ {
 		addSigIds[i] = signalsToAdd[i].ID()
 		if err := updateStructs(signalsToAdd[i]); err != nil {
@@ -339,13 +342,25 @@ func (ss *SignalServer) updateRecordSignals(signalsToAdd []Signal, signalsToDele
 	for recId := range records {
 		record := records[recId].record
 		if record.TotalSats() > 0 {
+			record.VBytes = record.vBytes()
+			record.VHash = record.vHash()
 			putQuery, putRecErr := ss.buckets.Record.PutRec(*record)
 			if putRecErr != nil {
 				return &DataUpdates{}, putRecErr
 			}
 			updates.AddPutQuery(putQuery)
+			putVQuery, putRecVErr := ss.buckets.Value.PutRecV(RecordValue{
+				RecID: record.ID(),
+				Value: record.Value,
+			})
+			if putRecVErr != nil {
+				return &DataUpdates{}, putRecErr
+			}
+			updates.AddPutQuery(putVQuery)
 		} else {
 			updates.AddDeleteQuery(ss.buckets.Record.DeleteRec(record.ID()))
+			// share the same record  id
+			updates.AddDeleteQuery(ss.buckets.Value.DeleteV(record.ID()))
 		}
 
 		rankUpdates, reRankErr := ss.buckets.Rank.ReRankRec(
