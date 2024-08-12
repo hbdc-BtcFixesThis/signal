@@ -67,15 +67,18 @@ func (r *Record) RankForSatCountB(sats uint64) []byte {
 	return F64tb(r.RankForSatCount(sats))
 }
 
-func (r *Record) toBytes() ([]byte, error) {
-	b, err := json.Marshal(SerializedRecord{
+func (r *Record) toSerializedRecord() SerializedRecord {
+	return SerializedRecord{
 		Sats:      r.Sats,
 		Name:      r.Name,
 		VBytes:    r.VBytes,
 		VHash:     r.VHash,
 		SignalIds: r.SignalIds,
-	})
-	return b, err
+	}
+}
+
+func (r *Record) toBytes() ([]byte, error) {
+	return json.Marshal(r.toSerializedRecord())
 }
 
 func (r *Record) TotalSats() uint64 {
