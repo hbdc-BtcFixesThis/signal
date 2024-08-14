@@ -2,7 +2,7 @@ var recordTableID = 'record-tbl-body-content';
 var recordTableHeaderID = 'record-tbl-header-tr';
 var results = {
 	'headers': [
-		{'key': 'key',           'display_header': 'Key'},
+		{'key': 'name',           'display_header': 'Key'},
 		// {'key': 'value',         'display_header': 'Value'},
 	],
 };

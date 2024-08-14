@@ -18,26 +18,12 @@ import (
 var static embed.FS
 
 type SignalServer struct {
-	// subscriberMessageBuffer controls the max number
-	// of messages that can be queued for a subscriber
-	// before it is kicked.
-	//
-	// Defaults to 16.
-	// subscriberMessageBuffer int
-
-	// publishLimiter controls the rate limit applied to the publish endpoint.
-	//
-	// Defaults to one publish every 100ms with a burst of 8.
-	//publishLimiter *rate.Limiter
-
-	// logf controls where logs are sent.
-	// Defaults to log.Printf.
-	logf func(f string, v ...interface{})
-
+	errorLog *log.Logger
+	infoLog  *log.Logger
 	serveMux http.ServeMux
+	buckets  *SignalBuckets
 	sc       *ServerConf
 	nc       *NodeConf
-	buckets  *SignalBuckets
 
 	sync.RWMutex
 }
@@ -67,8 +53,11 @@ func (ss *SignalServer) setHandlers() {
 }
 
 func newSignalServer() (*SignalServer, error) {
-	db := &DB{MustOpenDB(ServerConfFullPath.Default())}
-	sdb := &DB{MustOpenDB(SignalDataDBFullPath.Default())}
+	errLog := log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	infoLog := log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+
+	db := MustOpenAndWrapDB(ServerConfFullPath.Default(), errLog, infoLog)
+	sdb := MustOpenAndWrapDB(SignalDataDBFullPath.Default(), errLog, infoLog)
 	dbwc := &DBWithCache{
 		cache: make(map[string][]byte),
 		DB:    db,
@@ -87,12 +76,13 @@ func newSignalServer() (*SignalServer, error) {
 	// create if not exists
 	sc.CreateBucket(&Query{Bucket: sc.ConfBucketName()})
 	nc.CreateBucket(&Query{Bucket: nc.ConfBucketName()})
-
+	log.SetFlags(log.Lshortfile)
 	ss := &SignalServer{
-		sc:      sc,
-		nc:      nc,
-		buckets: sb,
-		logf:    log.Printf,
+		sc:       sc,
+		nc:       nc,
+		buckets:  sb,
+		infoLog:  infoLog,
+		errorLog: errLog,
 	}
 
 	// should start bg goroutine to listen for close signal
@@ -134,7 +124,7 @@ func (ss *SignalServer) closeNodeDBs() {
 */
 
 func (ss *SignalServer) Run() {
-	ss.logf("\nVisit https://0.0.0.0%s\n", ss.sc.Port(nil))
+	ss.infoLog.Printf("\nVisit https://0.0.0.0%s\n", ss.sc.Port(nil))
 
 	s := &http.Server{
 		Addr:           ByteSlice2String(ss.sc.Port(nil)),
@@ -155,16 +145,16 @@ func (ss *SignalServer) Run() {
 	signal.Notify(sigs, os.Interrupt)
 	select {
 	case err := <-errc:
-		ss.logf("failed to serve: %v", err)
+		ss.errorLog.Printf("failed to serve: %v", err)
 	case sig := <-sigs:
-		ss.logf("terminating: %v", sig)
+		ss.infoLog.Printf("terminating: %v", sig)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
 	if err := s.Shutdown(ctx); err != nil {
-		log.Fatal(err)
+		ss.errorLog.Fatal(err)
 	}
 }
 

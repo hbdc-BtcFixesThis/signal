@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"os"
 	"strconv"
 )
 
@@ -41,7 +43,9 @@ func tDataKV(size int, randKey bool, randVal bool) []Pair {
 }
 
 func open() {
-	TestDB = MustOpenAndWrapDB(tDBFileName)
+	errLog := log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+	infolog := log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	TestDB = MustOpenAndWrapDB(tDBFileName, errLog, infolog)
 	TestSC = ServerConf{
 		&DBWithCache{
 			DB:    TestDB,

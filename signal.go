@@ -72,8 +72,7 @@ Peace and love freaks`
 }
 
 func (s *Signal) CheckSignature() error {
-	return nil
-	// Bitcoin Testnet3
+	// return nil
 	valid, err := verifier.VerifyWithChain(verifier.SignedMessage{
 		Address:   s.BtcAddress.String(),
 		Message:   s.MessageToSign(),

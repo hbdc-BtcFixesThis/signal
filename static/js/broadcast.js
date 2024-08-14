@@ -80,7 +80,7 @@ submitNewRecord.addEventListener('click', (e)=> {
 
 	// make request
 	sendJsonPost(routes.newRecord, "POST", {
-		key: recordState.name.value,
+		name: recordState.name.value,
 		value: recordState.content.value,
 		signals: [{
 			btc_address: recordState.address.value,
