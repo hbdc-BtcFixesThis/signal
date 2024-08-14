@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"path/filepath"
@@ -25,7 +26,12 @@ func (du *DataUpdates) AppendUpdates(other *DataUpdates) {
 
 // You can rollback the transaction at any point by returning an error.
 // All database operations are allowed inside a read-write transaction.
-type DB struct{ *bolt.DB }
+type DB struct {
+	errorLog *log.Logger
+	infoLog  *log.Logger
+
+	*bolt.DB
+}
 
 func OpenDB(fp string) (*bolt.DB, error) {
 	if len(fp) == 0 {
@@ -45,13 +51,18 @@ func MustOpenDB(fp string) *bolt.DB {
 	return db
 }
 
-func MustOpenAndWrapDB(fp string) *DB {
-	return &DB{MustOpenDB(fp)}
+func MustOpenAndWrapDB(fp string, errorLog, infoLog *log.Logger) *DB {
+	return &DB{
+		errorLog,
+		infoLog,
+		MustOpenDB(fp),
+	}
 }
 
 func (db *DB) DeleteDB() error {
 	path := db.Path()
 	if err := db.Close(); err != nil {
+		db.errorLog.Println(err)
 		return err
 	}
 	return os.Remove(path)
@@ -90,10 +101,12 @@ func (db *DB) GenID(q *Query) ([]byte, error) {
 	return Itob(id), db.Update(func(tx *bolt.Tx) error {
 		b, err := getBucket(q, tx)
 		if err != nil {
+			db.errorLog.Println(err)
 			return err
 		}
 		id, err = b.NextSequence()
 		if err != nil {
+			db.errorLog.Println(err)
 			return err
 		}
 		return nil
@@ -104,6 +117,7 @@ func (db *DB) Get(q *Query) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := getBucket(q, tx)
 		if err != nil {
+			db.errorLog.Println(err)
 			return err
 		}
 		for i, _ := range q.KV {
@@ -125,6 +139,7 @@ func (db *DB) putTx(q *Query, tx *bolt.Tx) error {
 			// Returns an error if the bucket was created from
 			// a read-only transaction, if the key is blank, if
 			// the key is too large, or if the value is too large.
+			db.errorLog.Println(err)
 			return err
 		}
 	}
@@ -139,6 +154,7 @@ func (db *DB) GetOrPut(q *Query) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b, err := getBucket(q, tx)
 		if err != nil {
+			db.errorLog.Println(err)
 			return err
 		}
 		for i, _ := range q.KV {
@@ -146,6 +162,7 @@ func (db *DB) GetOrPut(q *Query) error {
 				q.KV[i].Val = v
 			} else {
 				if err := b.Put(q.KV[i].Key, q.KV[i].Val); err != nil {
+					db.errorLog.Println(err)
 					return err
 				}
 			}
@@ -157,6 +174,7 @@ func (db *DB) GetOrPut(q *Query) error {
 func (db *DB) deleteTx(q *Query, tx *bolt.Tx) error {
 	b, err := getBucket(q, tx)
 	if err != nil {
+		db.errorLog.Println(err)
 		return err
 	}
 	for _, kv := range q.KV {
@@ -165,6 +183,7 @@ func (db *DB) deleteTx(q *Query, tx *bolt.Tx) error {
 		// If the key does not exist then nothing is done and a nil error is returned.
 		// Returns an error if the bucket was created from a read-only transaction.
 		if err := b.Delete(kv.Key); err != nil {
+			db.errorLog.Println(err)
 			return err
 		}
 	}
@@ -180,12 +199,14 @@ func (db *DB) MultiWrite(updates *DataUpdates) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		for i := 0; i < len(updates.Delete); i++ {
 			if err := db.deleteTx(updates.Delete[i], tx); err != nil {
+				db.errorLog.Println(err)
 				return err
 			}
 		}
 		for i := 0; i < len(updates.Put); i++ {
-			if putErr := db.putTx(updates.Put[i], tx); putErr != nil {
-				return putErr
+			if err := db.putTx(updates.Put[i], tx); err != nil {
+				db.errorLog.Println(err)
+				return err
 			}
 		}
 		return nil
@@ -197,6 +218,7 @@ func (db *DB) GetPage(pq *PageQuery) error {
 		// Assume bucket exists and has keys
 		b, err := getBucket(pq.Query, tx)
 		if err != nil {
+			db.errorLog.Println(err)
 			return err
 		}
 		c := b.Cursor()
@@ -223,6 +245,7 @@ type QueryFunc func(q *Query) error
 func (db *DB) MustDo(do QueryFunc, query *Query) {
 	query.CreateBucketIfNotExists = true
 	if err := do(query); err != nil {
+		db.errorLog.Println(err)
 		panic(err)
 	}
 }

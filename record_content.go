@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 )
 
 const ValueBucketName = "Value"
@@ -31,12 +30,15 @@ func (v *ValueBucket) GetRecordById(id []byte) (RecordValue, error) {
 
 	rvBytes, err := v.GetId(id)
 	if err != nil {
+		v.errorLog.Println(err)
 		return recV, err
 	}
-	fmt.Println(ByteSlice2String(rvBytes))
-	err = json.Unmarshal(rvBytes, &recV)
+	if err := json.Unmarshal(rvBytes, &recV); err != nil {
+		v.errorLog.Println(err)
+		return recV, err
+	}
 
-	return recV, err
+	return recV, nil
 }
 
 func (v *ValueBucket) PutRecV(recV RecordValue) (*Query, error) {
@@ -44,6 +46,7 @@ func (v *ValueBucket) PutRecV(recV RecordValue) (*Query, error) {
 	recV.RecID = []byte{}
 	b, err := json.Marshal(recV)
 	if err != nil {
+		v.errorLog.Println(err)
 		return &Query{}, err
 	}
 	q := v.PutRecB(recID, b)

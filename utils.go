@@ -24,7 +24,10 @@ func F64tb(f float64) []byte {
 
 // float 64 from bytes
 func F64fb(b []byte) (float64, error) {
-	return strconv.ParseFloat(string(b), 64)
+	var f float64
+	buf := bytes.NewReader(b)
+	err := binary.Read(buf, binary.BigEndian, &f)
+	return f, err
 }
 
 func Btoi(b []byte) (uint64, error) {
@@ -32,9 +35,7 @@ func Btoi(b []byte) (uint64, error) {
 	return uint64(i), err
 }
 
-// NOTE this is for ids in the db. This may not even
-// be in use but when generating a new id this is
-// called. Do not expect this to be the reverse of
+// NOTE this is for ids in the db
 func Itob(v uint64) []byte {
 	b := make([]byte, 8)
 	binary.BigEndian.PutUint64(b, v)

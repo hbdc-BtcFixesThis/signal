@@ -33,15 +33,41 @@ func (ss *SignalServer) getPage(w http.ResponseWriter, r *http.Request) {
 func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
 	var rec Record
 	if err := json.NewDecoder(r.Body).Decode(&rec); err != nil {
+		ss.errorLog.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	updates, err := ss.IngestRecord(rec)
 	if err != nil {
+		ss.errorLog.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	// debug
+	/*
+		ss.infoLog.Println("--------------------------")
+		ss.infoLog.Println("------------Put-----------")
+		for update := range updates.Put {
+			ss.infoLog.Printf("\n\n-------\nBucket: %s\n", updates.Put[update].Bucket)
+			for kv := range updates.Put[update].KV {
+				ss.infoLog.Printf("\nkey: %s\nValue: %s", updates.Put[update].KV[kv].Key, updates.Put[update].KV[kv].Val)
+			}
+			ss.infoLog.Println("\n\n-------\n")
+		}
+		ss.infoLog.Println("--------------------------")
+		ss.infoLog.Println("----------Delete----------")
+		for update := range updates.Delete {
+			ss.infoLog.Printf("\n\n-------\nBucket: %s\n", updates.Delete[update].Bucket)
+			for kv := range updates.Put[update].KV {
+				ss.infoLog.Printf("\nkey: %s\nValue: %s", updates.Delete[update].KV[kv].Key, updates.Put[update].KV[kv].Val)
+			}
+			ss.infoLog.Printf("\n\n-------\n")
+		}
+		ss.infoLog.Println("--------------------------")
+	*/
 	if err := ss.buckets.db.MultiWrite(updates); err != nil {
+		ss.errorLog.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -49,14 +75,13 @@ func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(rec.ID())
 }
 
-func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
+func (ss *SignalServer) checkSizeLimits(r Record) error {
 	// checking the actual size of the database will not really
 	// be possible because space gets preallocated to be used for
 	// new data. If the db is set to double when some threshold
 	// is met so new data can populate the new portion of space;
 	// the file size will not tell you how much unallocated space
 	// is left. Not sure which approach to take yet.
-
 	spaceTaken := uint64(0) // TODO check get size of db
 	maxDbSize, _ := Btoi(MaxStorageSize.DefaultBytes())
 	spaceLeft := maxDbSize - spaceTaken
@@ -64,16 +89,16 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 		satsPerByte := float64(r.Sats) / float64(r.vBytes())
 		lr, err := ss.buckets.Rank.GetLowestRank()
 		if err != nil {
-			return &DataUpdates{}, err
+			ss.errorLog.Println(err)
+			return err
 		}
 		if satsPerByte < lr {
-			return &DataUpdates{}, ErrSignalTooWeak
+			return ErrSignalTooWeak
 		}
 	}
-
 	// check happens in db but why not fail early
 	if len(r.Name) > bolt.MaxKeySize {
-		return &DataUpdates{}, bolt.ErrKeyTooLarge
+		return bolt.ErrKeyTooLarge
 	}
 	if int64(len(r.Value)) > bolt.MaxValueSize {
 		// TODO (maybe shouldnt fail here and instead
@@ -83,48 +108,95 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 		// be best to set the location of the files
 		// stored in a user specified location that
 		// they can update through the ui
-		return &DataUpdates{}, bolt.ErrValueTooLarge
+		return bolt.ErrValueTooLarge
 	}
 	m, _ := Btoi(MaxRecordSize.DefaultBytes())
 	if m < r.vBytes() {
-		return &DataUpdates{}, ErrorRecordTooLarge
+		return ErrorRecordTooLarge
 	}
+	return nil
+}
+
+func (ss *SignalServer) dirtyPrepNewRec(r Record) error {
+	// might need a re-write at some point. this is a dirty write
+	// to avoid checks in the validation code to fail due to not
+	// having sufficient information to make a descision; resulting
+	// in an error being thrown. maybe pass a temp record around?
+	// maybe have a global in mem cache for new records and check
+	// there too when validating.
+	r.VBytes = r.vBytes()
+
+	// temp remove them when savin
+	r.SignalIds = []KV{}
 
 	if len(r.Value) > 0 {
 		r.VHash = r.vHash()
 	}
-	isNewRec := false
-	if v, err := ss.buckets.Record.GetId(r.ID()); err != nil {
-		return &DataUpdates{}, err
-	} else if len(v) == 0 {
-		r.VBytes = r.vBytes()
 
-		// temp remove them when savin
-		signalIds := r.SignalIds
-		r.SignalIds = []KV{}
-
-		// might need a re-write at some point. this is a dirty write
-		// to avoid checks in the validation code to fail due to not
-		// having sufficient information to make a descision; resulting
-		// in an error being thrown. maybe pass a temp record around?
-		// maybe have a global in mem cache for new records and check
-		// there too when validating.
-		q, err := ss.buckets.Record.PutRec(r)
-		if err != nil {
-			return &DataUpdates{}, err
-		}
+	if q, err := ss.buckets.Record.PutRec(r); err != nil {
+		ss.errorLog.Println(err)
+		return err
+	} else {
 		if err := ss.buckets.Record.Put(q); err != nil {
+			ss.errorLog.Println(err)
+			return err
+		}
+	}
+
+	// generate put query
+	putVQuery, putQueryErr := ss.buckets.Value.PutRecV(RecordValue{
+		RecID: r.ID(),
+		Value: r.Value,
+	})
+	if putQueryErr != nil {
+		if deleteErr := ss.buckets.Record.Delete(ss.buckets.Record.DeleteRec(r.ID())); deleteErr != nil {
+			ss.errorLog.Println(deleteErr)
+			return deleteErr
+		}
+		ss.errorLog.Println(putQueryErr)
+		return putQueryErr
+	}
+	if putErr := ss.buckets.Value.Put(putVQuery); putErr != nil {
+		if deleteErr := ss.buckets.Record.Delete(ss.buckets.Record.DeleteRec(r.ID())); deleteErr != nil {
+			ss.errorLog.Println(deleteErr)
+			return deleteErr
+		}
+		ss.errorLog.Println(putErr)
+		return putErr
+	}
+	return nil
+}
+
+func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
+	if err := ss.checkSizeLimits(r); err != nil {
+		return &DataUpdates{}, err
+	}
+
+	if len(r.Value) > 0 {
+		// to check the record id
+		r.VHash = r.vHash()
+	}
+
+	isNewRec := false
+	internalRecord, recErr := ss.buckets.Record.GetRecordWithSignalsById(r.ID())
+	if recErr != nil {
+		ss.errorLog.Println(recErr)
+		return &DataUpdates{}, recErr
+	} else if internalRecord.Sats == 0 {
+		if len(r.Value) > 0 {
+			r.VBytes = r.vBytes()
+			r.VHash = r.vHash()
+			r.Sats = r.TotalSats()
+		}
+		if err := ss.dirtyPrepNewRec(r); err != nil {
+			ss.errorLog.Println(err)
 			return &DataUpdates{}, err
 		}
-		r.SignalIds = signalIds
 		isNewRec = true
 	} else {
-		rec, err := ss.buckets.Record.GetRecordWithSignalsById(r.ID())
-		if err != nil {
-			return &DataUpdates{}, err
-		}
-		r.Signals = append(r.Signals, rec.Signals...)
-		r.SignalIds = append(r.SignalIds, rec.SignalIds...)
+		r.AddSignals(internalRecord.Signals)
+		r.Sats = internalRecord.Sats
+		r.VHash = internalRecord.VHash
 	}
 
 	updates := &DataUpdates{}
@@ -140,32 +212,29 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 		// hash is the id of the signal as a string (.ID() returns a KV)
 		signalFound := len(ss.buckets.Signal.GetId(r.Signals[i].ID())) > 0
 		sid := r.Signals[i].Hash()
-		if _, found := addrPendingSats[sid]; !found {
-			addrPendingSats[sid] = 0
-		}
 		if !signalFound {
+			if _, found := addrPendingSats[sid]; !found {
+				addrPendingSats[sid] = 0
+			}
 			addrPendingSats[sid] += r.Signals[i].Sats
 
 			// should delete the record if issue found
 			treeUpdates, updatesErr := ss.NewSignal(r.Signals[i], addrPendingSats[sid])
 			if updatesErr != nil && isNewRec {
-				deleteErr := ss.buckets.Record.Delete(ss.buckets.Record.DeleteRec(r.ID()))
-				if deleteErr != nil {
-					return &DataUpdates{}, deleteErr
+				if err := ss.buckets.Record.Delete(ss.buckets.Record.DeleteRec(r.ID())); err != nil {
+					ss.errorLog.Println(err)
+					return &DataUpdates{}, err
 				}
+				if err := ss.buckets.Value.Delete(ss.buckets.Value.DeleteV(r.ID())); err != nil {
+					ss.errorLog.Println(err)
+					return &DataUpdates{}, err
+				}
+				ss.errorLog.Println(updatesErr)
 				return &DataUpdates{}, updatesErr
 			}
 			updates.AppendUpdates(treeUpdates)
 		}
 	}
-	putVQuery, putRecVErr := ss.buckets.Value.PutRecV(RecordValue{
-		RecID: r.ID(),
-		Value: r.Value,
-	})
-	if putRecVErr != nil {
-		return &DataUpdates{}, putRecVErr
-	}
-	updates.AddPutQuery(putVQuery)
 	return updates, nil
 }
 
@@ -188,14 +257,15 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 		return updates, ErrorNeedMoreSats
 	}
 	if err := s.CheckSignature(); err != nil {
+		ss.errorLog.Println(err)
 		return updates, err
 	}
 
-	// onChain, chainCheckErr := BtcAddressTotal(s.BtcAddress.String())
-	// if chainCheckErr != nil {
-	// return updates, chainCheckErr
-	// }
-	onChain := uint64(1000000)
+	onChain, chainCheckErr := BtcAddressTotal(s.BtcAddress.String())
+	if chainCheckErr != nil {
+		return updates, chainCheckErr
+	}
+	// onChain := uint64(1000000)
 	if onChain < s.Sats {
 		return updates, ErrInsufficientFunds
 	}
@@ -205,6 +275,7 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 	// signal
 	signals, retrieveSignalsErr := ss.buckets.Address.GetSignals(s.BtcAddress)
 	if retrieveSignalsErr != nil {
+		ss.errorLog.Println(retrieveSignalsErr)
 		return updates, retrieveSignalsErr
 	}
 	for i := 0; i < len(signals); i++ {
@@ -287,7 +358,7 @@ func (ss *SignalServer) updateRecordSignals(signalsToAdd []Signal, signalsToDele
 	recordUpdater := SignalProcessor{
 		updates: &DataUpdates{},
 
-		records:   map[string]recordTracker{},
+		records:   map[string]*recordTracker{},
 		addresses: map[string]*Address{},
 
 		signalsToAdd:    signalsToAdd,
@@ -297,21 +368,29 @@ func (ss *SignalServer) updateRecordSignals(signalsToAdd []Signal, signalsToDele
 		removeSigIds: make([]KV, len(signalsToDelete)),
 
 		buckets: ss.buckets,
+
+		errorLog: ss.errorLog,
+		infoLog:  ss.infoLog,
 	}
 
 	if err := recordUpdater.AddSignals(signalsToAdd); err != nil {
+		ss.errorLog.Println(err)
 		return &DataUpdates{}, err
 	}
 	if err := recordUpdater.DeleteSignals(signalsToDelete); err != nil {
+		ss.errorLog.Println(err)
 		return &DataUpdates{}, err
 	}
 	if err := recordUpdater.UpdateAddresses(); err != nil {
+		ss.errorLog.Println(err)
 		return &DataUpdates{}, err
 	}
 	if err := recordUpdater.SignalUpdates(); err != nil {
+		ss.errorLog.Println(err)
 		return &DataUpdates{}, err
 	}
 	if err := recordUpdater.UpdateRankAndRecord(); err != nil {
+		ss.errorLog.Println(err)
 		return &DataUpdates{}, err
 	}
 

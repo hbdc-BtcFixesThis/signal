@@ -16,7 +16,7 @@ type Record struct {
 	VBytes    uint64   `json:"vbytes"`          // combined
 	VHash     string   `json:"vhash"`           // hash of value
 	Signals   []Signal `json:"signals,omitempty"`
-	SignalIds []KV     `json:"signal_ids"` // ids for signals in SignalBucket
+	SignalIds []KV     `json:"sids"` // ids for signals in SignalBucket
 }
 
 type SerializedRecord struct {
@@ -38,7 +38,7 @@ func (r *Record) Hash() string {
 // NOTE
 // cant rely on value being here used as helper
 //
-//	helpers for incoming records
+//	helper for incoming records only (otherwise VHash should used)
 func (r *Record) vHash() string { return SHA256(String2ByteSlice(r.Value)) }
 
 func (r *Record) vBytes() uint64 {
@@ -131,6 +131,12 @@ func (r *Record) AddSignal(s Signal) {
 	r.Sats = r.TotalSats()
 }
 
+func (r *Record) AddSignals(signals []Signal) {
+	for _, signal := range signals {
+		r.AddSignal(signal)
+	}
+}
+
 // key = r.RecordHash(); val = serialize record
 type RecordBucket struct{ *DB }
 
@@ -150,8 +156,13 @@ func (r *RecordBucket) GetRecordById(id []byte) (Record, error) {
 	var signalRec Record
 
 	rBytes, err := r.GetId(id)
+	r.infoLog.Printf("GetRecordById rbytes: %s", rBytes)
 	if err != nil {
+		r.errorLog.Println(err)
 		return signalRec, err
+	}
+	if len(rBytes) == 0 {
+		return Record{}, nil
 	}
 	err = json.Unmarshal(rBytes, &signalRec)
 
@@ -161,10 +172,12 @@ func (r *RecordBucket) GetRecordById(id []byte) (Record, error) {
 func (r *RecordBucket) GetRecordWithSignalsById(id []byte) (Record, error) {
 	record, err := r.GetRecordById(id)
 	if err != nil {
+		r.errorLog.Println(err)
 		return record, err
 	}
 	signals, err := (&SignalBucket{r.DB}).GetSignalsByIds(record.SignalIds)
 	if err != nil {
+		r.errorLog.Println(err)
 		return record, err
 	}
 	record.Signals = signals

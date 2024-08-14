@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"encoding/json"
 )
 
@@ -63,11 +61,13 @@ func (r *RankBucket) PutSignalRec(sr Record) (*Query, error) {
 	key := F64tb(float64(sr.Sats) / float64(sr.VBytes))
 	rankB, getErr := r.GetId(key)
 	if getErr != nil {
+		r.errorLog.Println(getErr)
 		return &Query{}, getErr
 	}
 
 	var rank Rank
 	if err := json.Unmarshal(rankB, &rank); err != nil {
+		r.errorLog.Println(err)
 		return &Query{}, err
 	}
 	for i := 0; i < len(rank.Records); i++ {
@@ -81,6 +81,7 @@ func (r *RankBucket) PutSignalRec(sr Record) (*Query, error) {
 
 	b, err := json.Marshal(rank)
 	if err != nil {
+		r.errorLog.Println(err)
 		return &Query{}, err
 	}
 	return r.PutId(key, b), nil
@@ -94,6 +95,7 @@ func (r *RankBucket) deleteRecFromRank(currentRankB, recId []byte) (*DataUpdates
 		CreateBucketIfNotExists: true,
 	}
 	if err := r.Get(qCurrentRank); err != nil {
+		r.errorLog.Println(err)
 		return updates, err
 	}
 	if len(qCurrentRank.KV[0].Val) == 0 {
@@ -103,6 +105,7 @@ func (r *RankBucket) deleteRecFromRank(currentRankB, recId []byte) (*DataUpdates
 
 	var currentRank Rank
 	if err := json.Unmarshal(qCurrentRank.KV[0].Val, &currentRank); err != nil {
+		r.errorLog.Println(err)
 		return updates, err
 	}
 	found := false
@@ -119,6 +122,7 @@ func (r *RankBucket) deleteRecFromRank(currentRankB, recId []byte) (*DataUpdates
 	}
 	if found {
 		if b, err := json.Marshal(currentRank); err != nil {
+			r.errorLog.Println(err)
 			return updates, err
 		} else {
 			qCurrentRank.KV[0].Val = b
@@ -132,6 +136,7 @@ func (r *RankBucket) deleteRecFromRank(currentRankB, recId []byte) (*DataUpdates
 func (r *RankBucket) ReRankRec(currentRankB []byte, newRankB []byte, recId KV) (*DataUpdates, error) {
 	updates, err := r.deleteRecFromRank(currentRankB, recId)
 	if err != nil {
+		r.errorLog.Println(err)
 		return updates, err
 	}
 	qNewRank := &Query{
@@ -141,10 +146,13 @@ func (r *RankBucket) ReRankRec(currentRankB []byte, newRankB []byte, recId KV) (
 	}
 	var newRank Rank
 	if err := r.Get(qNewRank); err != nil {
+		r.errorLog.Println(err)
 		return &DataUpdates{}, err
 	}
 	if len(qNewRank.KV[0].Val) > 0 {
-		if err := json.Unmarshal(qNewRank.KV[0].Val, newRank); err != nil {
+		if err := json.Unmarshal(qNewRank.KV[0].Val, &newRank); err != nil {
+			r.errorLog.Println(err)
+			r.errorLog.Printf("key: %s, val: %s", qNewRank.KV[0].Key, qNewRank.KV[0].Val)
 			return &DataUpdates{}, err
 		}
 		for i := 0; i < len(newRank.Records); i++ {
@@ -156,6 +164,7 @@ func (r *RankBucket) ReRankRec(currentRankB []byte, newRankB []byte, recId KV) (
 	newRank.Records = append(newRank.Records, recId)
 	b, err := json.Marshal(newRank)
 	if err != nil {
+		r.errorLog.Println(err)
 		return &DataUpdates{}, err
 	}
 	qNewRank.KV[0].Val = b
@@ -185,12 +194,11 @@ out:
 			break
 		}
 
-		fmt.Println("GetPageRecordIds: ", pq.KV[0].Val)
 		err := json.Unmarshal(pq.KV[0].Val, &rank)
 		if err != nil {
+			r.errorLog.Println(err)
 			return results, err
 		}
-		fmt.Println("GetPageRecordIds: ", pq.KV[0].Val)
 		newRecFound := true
 		for i := 0; i < len(rank.Records); i++ {
 			// NOTE
