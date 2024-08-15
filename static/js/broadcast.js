@@ -7,22 +7,7 @@ let submitNewRecord = document.getElementById('submit-create-record');
 
 let signalSignaturerMessage = document.getElementById('signal-signature-message')
 
-const newSignalSignatureMessage = `This is not a bitcoin transaction!
-
-For as long as the there are at least
-
-SATS: {numSats}
-
-unspent in Bitcoin
-
-ADDRESS: {bitcion address}
-
-may they be used to spread
-
-RECORD ID: {record id}
-
-
-Peace and love freaks`
+let newSignalSignatureMessage = ''
 
 let recordState = {
 	name: document.getElementById("new-record-name"),
@@ -52,6 +37,7 @@ function updateNewSignalSignatureMessage(recordId, numSats, btcAddr) {
 		"{numSats}", numSats).replace(
 		"{bitcion address}", btcAddr,
 	);
+	console.log(newMessageToSign)
 	recordState.signatureMessage.value = newMessageToSign;
 }
 
@@ -90,3 +76,23 @@ submitNewRecord.addEventListener('click', (e)=> {
 	}, successfullyAddedRecord, failedToAddRecord);
 	genTable()
 }, false);
+
+function successfullyRetrievedTemplate(xhr) {
+	// resp = JSON.parse(xhr.response);
+	// console.log(resp)
+	console.log(xhr.response)
+	newSignalSignatureMessage = xhr.response;
+}
+
+function failedToRetrieveTemplate(xhr) {
+    showErrorBanner(xhr.responseText);
+} 
+
+function getMessageTemplate() {
+	sendJsonPost(
+		routes.getMessageTemplate, "GET", null,
+		successfullyRetrievedTemplate, failedToRetrieveTemplate,
+	);
+}
+
+getMessageTemplate();
