@@ -2,6 +2,7 @@ package main
 
 import (
 	"cmp"
+	"fmt"
 	"slices"
 
 	"encoding/json"
@@ -9,6 +10,10 @@ import (
 
 	bolt "go.etcd.io/bbolt"
 )
+
+func (ss *SignalServer) getMessageTemplate(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, Signal{}.MessageTemplate(), "{numSats}", "{bitcion address}", "{record id}")
+}
 
 func (ss *SignalServer) getPage(w http.ResponseWriter, r *http.Request) {
 	recordIds, err := ss.buckets.Rank.GetPageRecordIds([]byte{}, 10)

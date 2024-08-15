@@ -148,6 +148,14 @@ textarea {
 .h100 {height: 100%;}
 .hide {display: none;}
 
+.top-right {
+	vertical-align: top;
+    text-align: right;
+    font-size: x-small;
+    color: var(--orange);;
+	padding-left: .2rem;
+}
+
 .top-left {
 	vertical-align: top;
     text-align: left;

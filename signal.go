@@ -50,8 +50,8 @@ func (s *Signal) Hash() string { return SHA256(s.Signature) }
 
 func (s *Signal) ID() KV { return String2ByteSlice(s.Hash()) }
 
-func (s *Signal) MessageToSign() string {
-	message := `This is not a bitcoin transaction!
+func (s Signal) MessageTemplate() string {
+	return `This is not a bitcoin transaction!
 
 For as long as the there are at least
 
@@ -67,12 +67,13 @@ RECORD ID: %s
 
 
 Peace and love freaks`
+}
 
-	return fmt.Sprintf(message, s.Sats, s.BtcAddress, s.RecID)
+func (s *Signal) MessageToSign() string {
+	return fmt.Sprintf(s.MessageTemplate(), s.Sats, s.BtcAddress, s.RecID)
 }
 
 func (s *Signal) CheckSignature() error {
-	// return nil
 	valid, err := verifier.VerifyWithChain(verifier.SignedMessage{
 		Address:   s.BtcAddress.String(),
 		Message:   s.MessageToSign(),

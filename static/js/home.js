@@ -29,12 +29,13 @@ function genRows(headers, rows) {
 	// var modalTemplateHtml = '';
 	var tbl = document.getElementById(recordTableID);
 	for (row of rows) {
-		tbl.innerHTML += '<div class="top-left">' +
-					  		'sats: ' + row.sats +
+		tbl.innerHTML += '<div class="w100 dflexnowrap">' +
+						 '<div class="top-left w50">' +
+					  		'sats/byte: ' + (row.sats/row.vbytes).toFixed(2) +
 				  		 '</div>' +
-						 '<div class="top-left">' +
+						 '<div class="top-right w50">' +
 					  		'vBytes: ' + row.vbytes +
-				  		 '</div>' +
+				  		 '</div></div>' +
 						 '<tr class="trigger-modal" id="' + row[headers[0].key]+ '">' +
 							genRow(row, headers) +
 						 '</tr>';
@@ -67,7 +68,7 @@ function failedToRetrievePage(xhr) {
 } 
 
 function genTable() {
-	genHeaders(results.headers);
+	// genHeaders(results.headers);
 	results.signals = sendJsonPost(
 		routes.getPage, "GET", null,
 		successfullyRetrievedPage, failedToRetrievePage,
