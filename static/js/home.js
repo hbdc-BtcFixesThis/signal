@@ -7,15 +7,6 @@ var results = {
 	],
 };
 
-function genHeaders(headers) {
-	var headerHTML = '';
-	for (header of headers) {
-		headerHTML += '<th>' + header.display_header + '</th>\n';
-	}
-	document.getElementById(recordTableHeaderID).innerHTML = headerHTML;
-	console.log(headerHTML);
-}
-
 function genRow(row, headers) {
 	// follow same order specified for headers
 	var rowHTML = ''
@@ -36,10 +27,17 @@ function genRows(headers, rows) {
 						 '<div class="top-right w50">' +
 					  		'vBytes: ' + row.vbytes +
 				  		 '</div></div>' +
-						 '<tr class="trigger-modal" id="' + row[headers[0].key]+ '">' +
+						 '<tr id="' + row.rid + '" onclick="showRecordDetails(this)">' +
 							genRow(row, headers) +
-						 '</tr>';
+						 '</tr>' +
+						 '<tr class="expandable-row" id="rid-details:' + row.rid + '"></tr>';
 	}
+}
+
+function showRecordDetails(e) {
+	// console.log(e)
+	detailsRow = document.getElementById("rid-details:" + e.id);
+	detailsRow.innterHTML = "I WAS HERE";
 }
 
 function  clearTableRows() {
@@ -68,7 +66,6 @@ function failedToRetrievePage(xhr) {
 } 
 
 function genTable() {
-	// genHeaders(results.headers);
 	results.signals = sendJsonPost(
 		routes.getPage, "GET", null,
 		successfullyRetrievedPage, failedToRetrievePage,

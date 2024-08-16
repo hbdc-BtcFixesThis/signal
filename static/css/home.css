@@ -59,7 +59,7 @@ svg {
 	max-height: 80vh;
 }
 .tbl-header{background-color: rgba(255,255,255,0.3);}
-.result-details {width: 20rem;}
+/*.result-details {width: 20rem;}*/
 .results-table {width: 12rem;}
 .tbl-content{
 	height:30rem;
@@ -67,6 +67,14 @@ svg {
 	margin-top: 0px;
 	border: 1px solid rgba(255,255,255,0.3);
 }
+.expandable-row {
+    display: none;
+}
+
+.expandable-row[aria-hidden="false"] {
+    display: table-row;
+}
+
 th{
 	padding: .8rem;
 	text-align: left;

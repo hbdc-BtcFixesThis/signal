@@ -29,7 +29,9 @@ func (ss *SignalServer) getPage(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		records = append(records, record.toSerializedRecord())
+		rec := record.toSerializedRecord()
+		rec.ID = record.ID()
+		records = append(records, rec)
 	}
 
 	json.NewEncoder(w).Encode(records)
