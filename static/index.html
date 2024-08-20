@@ -11,8 +11,7 @@
 	<link rel="stylesheet" href="css/errors.css">
 	<link rel="stylesheet" href="css/toggle.css">
 	<link rel="stylesheet" href="css/percent_slider.css">
-</head>
-<body>
+
 	<div class="bg w100 h100">
 		<img class="bg w100 h100" src="images/2001_monolith.jpg" alt="Signal through the noise">
 	</div>
@@ -215,29 +214,6 @@
 						  placeholder="What would you like to spread?"
 						  style="height: 5em"
 						  autocomplete="off"></textarea>
-			
-				<!--div id="percent-slider">
-					<div class="percent-slider-bars">
-						<div class="percent-slider-bar"
-							 id="percent-slider-new-rec-1"
-							 style="width: 50%;">50%</div>
-						<div class="percent-slider-select"></div>
-						<div class="percent-slider-bar"
-							 id="percent-slider-new-rec-2"
-							 style="width: 50%;">50%</div>
-					</div>
-					<input id="percent-slider-input" class="percent-slider-input" type="range"></input>
-					<div id="percent-slider-ledger-wrapper">
-						<div class="percent-slider-ledger-key">
-							<div class="percent-slider-ledger percent-slider-color-2"></div>
-							<span class="percent-slider-ledger-text">Used</span>
-						</div>
-						<div class="percent-slider-ledger-key">
-							<div class="percent-slider-ledger percent-slider-color-1"></div>
-							<span class="percent-slider-ledger-text">Free</span>
-						</div>
-					</div>
-				</div-->
 
 				<input type="number"
 					   id="new-record-signal-sats"
@@ -256,24 +232,16 @@
 					   name="signal-signature-message"
 					   style="height: 20em"
 					   readonly></textarea>
-
-				<!--div class="toggle-button-cover">
-					<div class="button-cover">
-						<strong>Private?</strong>
-						<div class="toggle-button b2" id="toggle-button">
-						<input type="checkbox" class="checkbox" />
-							<div class="knobs">
-						<span></span>
-							</div>
-							<div class="layer"></div>
-						</div>
-					</div>
-				</div--!>
 					
 				<button class="w100 orange-button" id="submit-create-record">Broadcast</button>
 			</form>
 		</div>
 	</div>
+	<dialog id="record-details" class="ps-center">
+		<div class="bg w100 h100">
+			<img class="bg w100 h100" src="images/compass.jpg" alt="Signal through the noise">
+		</div>
+	</dialog>
 </body>
 <script type="text/javascript" src="js/request.js"></script>
 <script type="text/javascript" src="js/icons.js"></script>
