@@ -2,18 +2,18 @@ var recordTableID = 'record-tbl-body-content';
 var recordDetailsID = 'record-details';
 
 function satsOrBtcRounding(amount) {
-	var retAmt = amount.toFixed(5);
-	var unit = 'btc';
+	var retAmt = amount;
+	var unit = 'BTC';
 	if (amount > 10000000) {
-		retAmt = (amount/100000000).toFixed(2);
+		retAmt = (amount/100000000);
 	} else if (amount > 1000000) {
-		retAmt = (amount/100000000).toFixed(3);
+		retAmt = (amount/100000000);
 	} else if (amount > 100000) {
-		retAmt = (amount/100000000).toFixed(4);
+		retAmt = (amount/100000000);
 	} else {
-		unit = 'sats';
+		unit = 'SATS';
 	}
-	return [parseFloat(retAmt), unit];
+	return [parseFloat(retAmt.toFixed(3)), unit];
 }
 
 function formatBytes(bytes, decimals = 2) {
@@ -36,22 +36,29 @@ function genRows(rows) {
 		fmattedBtcPerByte = satsOrBtcRounding(row.sats/row.vbytes);
 		fmattedBtc = satsOrBtcRounding(row.sats);
 		tbl.innerHTML += '<tr id="' + row.rid + '">' +
-							'<td class="w40 overflow-x-scroll">' + row.name + '</td>' +
-							'<td class="record-stats-text">' +
-							 	'<div>' + fmattedBtcPerByte[1] + '/byte</div>' +
-								'<div>' + fmattedBtc[1] + ' </div><div>size </div><div>signals </div>' +
+							'<td class="w40 overflow-x-scroll">' +
+								row.name +
+								'<div class="w100">' +
 								'<button id="' + row.rid + '" ' +
-									    'class="previewIcon orange-button w100 tbl-btn-spacing"' +
+									    'class="previewIcon orange-button "' +
 									    'onclick="showRecordDetails(this)"></button>' +
+								'<button id="' + row.rid + '" ' +
+									    'class="bitcoinIcon orange-button "' +
+									    'onclick="showRecordDetails(this)"></button>' +
+								'<button id="' + row.rid + '" ' +
+									    'class="signatureIcon orange-button "' +
+									    'onclick="showRecordDetails(this)"></button>' +
+								"</div>" +
 							'</td>' +
 							'<td class="record-stats-text">' +
-							 	'<div><h2>' + fmattedBtcPerByte[0] + '</h2></div>' +
-							 	'<div>' + fmattedBtc[0] + '</div>' +
+							 	'<div>Value</div><div>Size</div><div>signal</div><div>Signal count</div>' +
+							'</td>' +
+							'<td class="record-stats-text">' +
+							 	'<div>' + fmattedBtc[0] + ' ' + fmattedBtc[1] +  '</div>' +
 							 	'<div>' + formatBytes(row.vbytes) + '</div>' +
+							 	'<div><b>' + fmattedBtcPerByte[0] + '</b> ' +
+											 fmattedBtcPerByte[1] + '/B</div>' +
 							 	'<div>' + row.sids.length + '</div>' +
-								'<button id="' + row.rid + '" ' +
-									    'class="bitcoinIcon orange-button w100 tbl-btn-spacing"' +
-									    'onclick="showRecordDetails(this)"></button>' +
 							'</td>' +
 						 '</tr>';
 	}

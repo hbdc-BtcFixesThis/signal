@@ -144,10 +144,11 @@ textarea {
 	transition: background-color 0.2s ease 0s;
 }
 
-.w100 {width: 100%;}
+.w20 {width: 20%;}
 .w40 {width: 40%;}
 .w50 {width: 50%;}
 .w70 {width: 70%;}
+.w100 {width: 100%;}
 .h100 {height: 100%;}
 .hide {display: none;}
 .overflow-x-scroll {overflow-x: scroll;}
@@ -179,8 +180,8 @@ dialog {
 	padding-right: .2rem;
 }
 
-.top-right {
-	vertical-align: top;
+.bottom-right {
+	vertical-align: bottom;
     text-align: right;
 }
 
