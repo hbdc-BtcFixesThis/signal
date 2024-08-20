@@ -11,6 +11,34 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+func (ss *SignalServer) getRecordValue(w http.ResponseWriter, r *http.Request) {
+	rid := r.URL.Query().Get("rid")
+	if len(rid) == 0 {
+		http.Error(w, "Must provide a record ID.", http.StatusBadRequest)
+		return
+	}
+	valueB, err := ss.buckets.Value.GetId(String2ByteSlice(rid))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Fprintf(w, "%s", valueB)
+}
+
+func (ss *SignalServer) getRecordSignals(w http.ResponseWriter, r *http.Request) {
+	rid := r.URL.Query().Get("rid")
+	if len(rid) == 0 {
+		http.Error(w, "Must provide a record ID.", http.StatusBadRequest)
+		return
+	}
+	record, err := ss.buckets.Record.GetRecordWithSignalsById(String2ByteSlice(rid))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	json.NewEncoder(w).Encode(record.Signals)
+}
+
 func (ss *SignalServer) getMessageTemplate(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, Signal{}.MessageTemplate(), "{numSats}", "{bitcion address}", "{record id}")
 }
