@@ -1,19 +1,27 @@
 var recordTableID = 'record-tbl-body-content';
 var recordDetailsID = 'record-details';
 
+// used for signatures/sigals and preview formatting
+var detailsDialog = document.getElementById(recordDetailsID);
+document.addEventListener('click', ({target}) => target === detailsDialog && detailsDialog.close());
+
+function failedToRetrieve(xhr) {
+    showErrorBanner(xhr.responseText);
+} 
+
 function satsOrBtcRounding(amount) {
-	var retAmt = amount.toFixed(5);
-	var unit = 'btc';
+	var retAmt = amount;
+	var unit = 'BTC';
 	if (amount > 10000000) {
-		retAmt = (amount/100000000).toFixed(2);
+		retAmt = (amount/100000000);
 	} else if (amount > 1000000) {
-		retAmt = (amount/100000000).toFixed(3);
+		retAmt = (amount/100000000);
 	} else if (amount > 100000) {
-		retAmt = (amount/100000000).toFixed(4);
+		retAmt = (amount/100000000);
 	} else {
-		unit = 'sats';
+		unit = 'SATS';
 	}
-	return [parseFloat(retAmt), unit];
+	return [parseFloat(retAmt.toFixed(3)), unit];
 }
 
 function formatBytes(bytes, decimals = 2) {
@@ -36,42 +44,78 @@ function genRows(rows) {
 		fmattedBtcPerByte = satsOrBtcRounding(row.sats/row.vbytes);
 		fmattedBtc = satsOrBtcRounding(row.sats);
 		tbl.innerHTML += '<tr id="' + row.rid + '">' +
-							'<td class="w40 overflow-x-scroll">' + row.name + '</td>' +
-							'<td class="record-stats-text">' +
-							 	'<div>' + fmattedBtcPerByte[1] + '/byte</div>' +
-								'<div>' + fmattedBtc[1] + ' </div><div>size </div><div>signals </div>' +
+							'<td class="w40 overflow-x-scroll">' +
+								row.name +
+								'<div class="w100">' +
 								'<button id="' + row.rid + '" ' +
-									    'class="previewIcon orange-button w100 tbl-btn-spacing"' +
+									    'class="previewIcon orange-button "' +
+									    'onclick="showRecordValue(this)"></button>' +
+								'<button id="' + row.rid + '" ' +
+									    'class="bitcoinIcon orange-button "' +
+									    'onclick="showRecordSignals(this)"></button>' +
+								'<button id="' + row.rid + '" ' +
+									    'class="signatureIcon orange-button "' +
 									    'onclick="showRecordDetails(this)"></button>' +
+								"</div>" +
 							'</td>' +
 							'<td class="record-stats-text">' +
-							 	'<div><h2>' + fmattedBtcPerByte[0] + '</h2></div>' +
-							 	'<div>' + fmattedBtc[0] + '</div>' +
+							 	'<div>Value</div><div>Size</div><div>signal</div><div>Signal count</div>' +
+							'</td>' +
+							'<td class="record-stats-text">' +
+							 	'<div>' + fmattedBtc[0] + ' ' + fmattedBtc[1] +  '</div>' +
 							 	'<div>' + formatBytes(row.vbytes) + '</div>' +
+							 	'<div><b>' + fmattedBtcPerByte[0] + '</b> ' +
+											 fmattedBtcPerByte[1] + '/B</div>' +
 							 	'<div>' + row.sids.length + '</div>' +
-								'<button id="' + row.rid + '" ' +
-									    'class="bitcoinIcon orange-button w100 tbl-btn-spacing"' +
-									    'onclick="showRecordDetails(this)"></button>' +
 							'</td>' +
 						 '</tr>';
 	}
 }
 
-// used for signatures/sigals and preview formatting
-var detailsDialog = document.getElementById(recordDetailsID);
-document.addEventListener('click', ({target}) => target === detailsDialog && detailsDialog.close());
-
-function showRecordDetails(e) {
-	console.log(e.id)
+function successfullyRetrievedRecordValue(xhr) {
+	var response = JSON.parse(xhr.response);
 	detailsDialog = document.getElementById(recordDetailsID);
-	detailsDialog.innerHTML = `<div>
+	detailsDialog.innerHTML ='<pre class="grey-text" style="text-wrap: balance;">' + response.value + "</pre>";
+	detailsDialog.showModal();
+}
+
+function successfullyRetrievedRecordSignals(xhr) {
+	var response = JSON.parse(xhr.response);
+	detailsDialog = document.getElementById(recordDetailsID);
+	
+	var rows = '';
+	for (signal of response) {
+		var [fmattedBtcAmnt, unitsBtc] = satsOrBtcRounding(signal.sats);
+		rows += '<tr><td>' + signal.btc_address + '</td><td>' +
+							 fmattedBtcAmnt + unitsBtc + '</td><td>' +
+							 signal.signature +
+				'</td></tr>'
+	}
+	detailsDialog.innerHTML = `<div style="min-width: 25rem;">
         <table cellpadding="0" cellspacing="0" border="0" class="w100">
           <tbody id="record-details-tbl-body-content">
-		  	<tr><td>address</td><td>21</td></tr>
-          </tbody>
+		  <tr><th>BTC Address</th><th>Value</th><th>Signature</th></tr>`
+		  	+ rows +
+          `</tbody>
         </table>
       </div>`;
 	detailsDialog.showModal();
+}
+
+function showRecordValue(e) {
+	console.log(e.id)
+	sendJsonPost(
+		routes.recordValue+'?rid='+e.id, "GET", null,
+		successfullyRetrievedRecordValue, failedToRetrieve,
+	);
+}
+
+function showRecordSignals(e) {
+	console.log(e.id)
+	sendJsonPost(
+		routes.getRecordSignals+'?rid='+e.id, "GET", null,
+		successfullyRetrievedRecordSignals, failedToRetrieve,
+	);
 }
 
 function  clearTableRows() {
@@ -93,16 +137,11 @@ function successfullyRetrievedPage(xhr) {
     // showSuccessBanner(xhr.responseText)
 }
 
-function failedToRetrievePage(xhr) {
-    // removeLoadingClass(submitNewRecord);
-    showErrorBanner(xhr.responseText);
-} 
-
 function genTable() {
 	// results.signals = 
 	sendJsonPost(
 		routes.getPage, "GET", null,
-		successfullyRetrievedPage, failedToRetrievePage,
+		successfullyRetrievedPage, failedToRetrieve,
 	);
 	// genRows(results.headers, results.signals);
 }

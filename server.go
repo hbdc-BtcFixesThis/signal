@@ -50,6 +50,8 @@ func (ss *SignalServer) setHandlers() {
 	// public
 	ss.serveMux.Handle("/new/record", jw(http.HandlerFunc(ss.newRecord)))
 	ss.serveMux.Handle("/get/page", jw(http.HandlerFunc(ss.getPage)))
+	ss.serveMux.Handle("/record/value", jw(http.HandlerFunc(ss.getRecordValue)))
+	ss.serveMux.Handle("/record/signals", jw(http.HandlerFunc(ss.getRecordSignals)))
 	ss.serveMux.Handle("/message/template", jw(http.HandlerFunc(ss.getMessageTemplate)))
 }
 

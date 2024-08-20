@@ -42,6 +42,8 @@ svg {
 	fill: gray;
 }
 
+.grey-text {color: var(--grey);}
+
 .dflexnowrap {
 	display: flex;
 	flex-wrap: nowrap;
@@ -59,7 +61,6 @@ svg {
 	max-height: 80vh;
 }
 .tbl-header{background-color: rgba(255,255,255,0.3);}
-/*.result-details {width: 20rem;}*/
 .results-table {width: 12rem;}
 .tbl-content{
 	height:30rem;
@@ -144,10 +145,12 @@ textarea {
 	transition: background-color 0.2s ease 0s;
 }
 
-.w100 {width: 100%;}
+.w20 {width: 20%;}
 .w40 {width: 40%;}
 .w50 {width: 50%;}
+.w60 {width: 60%;}
 .w70 {width: 70%;}
+.w100 {width: 100%;}
 .h100 {height: 100%;}
 .hide {display: none;}
 .overflow-x-scroll {overflow-x: scroll;}
@@ -179,8 +182,8 @@ dialog {
 	padding-right: .2rem;
 }
 
-.top-right {
-	vertical-align: top;
+.bottom-right {
+	vertical-align: bottom;
     text-align: right;
 }
 

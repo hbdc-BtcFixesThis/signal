@@ -197,51 +197,47 @@
 		<img class="bg w100 h100" src="images/rabbithole.jpg" alt="Signal through the noise">
 		<div class="modal-content box-shadow">
 			<span class="close-button" id="cancel-create-trigger">×</span>
-			<form name="broadcast">	
-				<input type="text"
-					   id="new-record-name"
-					   name="new-record-name"
-					   placeholder="Unique record name...">
-
-				<input type="text"
-					   id="signal-wallet-address"
-					   name="signal-wallet-address"
-					   placeholder="Bitcoin Wallet Address...">
-	  
-				<textarea type="text"
-						  id="new-record-content"
-						  name="new-record-content"
-						  placeholder="What would you like to spread?"
-						  style="height: 5em"
-						  autocomplete="off"></textarea>
-
+			<form name="broadcast">
 				<input type="number"
 					   id="new-record-signal-sats"
 					   class="signal-sats"
 					   name="new-record-sats"
-					   placeholder="Number of sats to use for spreading this signal."
+					   placeholder="Sats"
 					   step=1>
+	  
+				<input type="text"
+					   id="new-record-name"
+					   name="new-record-name"
+					   placeholder="Name">
+
+				<textarea type="text"
+						  id="new-record-content"
+						  name="new-record-content"
+						  placeholder="Value"
+						  style="height: 5em"
+						  autocomplete="off"></textarea>
 
 				<input type="text"
-					   id="signal-signature"
-					   name="signal-signature"
-					   placeholder="Sign the message bellow and paste here to spread the message...">
+					   id="signal-wallet-address"
+					   name="signal-wallet-address"
+					   placeholder="BTC Wallet Address...">
 
 				<textarea type="text"
 					   id="signal-signature-message"
 					   name="signal-signature-message"
 					   style="height: 20em"
 					   readonly></textarea>
+
+				<input type="text"
+					   id="signal-signature"
+					   name="signal-signature"
+					   placeholder="Signed message (sign the above message)">
 					
 				<button class="w100 orange-button" id="submit-create-record">Broadcast</button>
 			</form>
 		</div>
 	</div>
-	<dialog id="record-details" class="ps-center">
-		<div class="bg w100 h100">
-			<img class="bg w100 h100" src="images/compass.jpg" alt="Signal through the noise">
-		</div>
-	</dialog>
+	<dialog id="record-details" class="ps-center w70"></dialog>
 </body>
 <script type="text/javascript" src="js/request.js"></script>
 <script type="text/javascript" src="js/icons.js"></script>
