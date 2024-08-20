@@ -20,6 +20,7 @@ type Record struct {
 }
 
 type SerializedRecord struct {
+	ID        KV     `json:"rid,omitempty"`
 	Sats      uint64 `json:"sats"`
 	Name      string `json:"name"`
 	VBytes    uint64 `json:"vbytes"`

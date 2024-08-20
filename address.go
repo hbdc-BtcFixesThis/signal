@@ -177,7 +177,6 @@ func (ab *AddressBucket) GetSignals(address []byte) ([]Signal, error) {
 
 	var a Address
 	if err := json.Unmarshal(signalBytes, &a); len(a.Signals) == 0 || err != nil {
-
 		return []Signal{}, err
 	}
 

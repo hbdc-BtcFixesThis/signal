@@ -59,7 +59,7 @@ svg {
 	max-height: 80vh;
 }
 .tbl-header{background-color: rgba(255,255,255,0.3);}
-.result-details {width: 20rem;}
+/*.result-details {width: 20rem;}*/
 .results-table {width: 12rem;}
 .tbl-content{
 	height:30rem;
@@ -67,6 +67,7 @@ svg {
 	margin-top: 0px;
 	border: 1px solid rgba(255,255,255,0.3);
 }
+
 th{
 	padding: .8rem;
 	text-align: left;
@@ -144,24 +145,48 @@ textarea {
 }
 
 .w100 {width: 100%;}
+.w40 {width: 40%;}
 .w50 {width: 50%;}
+.w70 {width: 70%;}
 .h100 {height: 100%;}
 .hide {display: none;}
+.overflow-x-scroll {overflow-x: scroll;}
+
+dialog {
+  padding: 50px;
+  border-radius: 5px;
+  border: 0;
+  width: 35%;
+  height: 55%;
+  background: rgb(0 0 0 / 88%);
+
+	&::backdrop {
+  	background: rgba(0, 0, 0, 0.4);
+	}
+
+	&[open],
+	&::backdrop {
+		animation: show 500ms ease;
+	}
+}
+
+.ps-center {place-self: center;}
+
+.record-stats-text {
+    font-size: x-small;
+    color: var(--orange);;
+	padding-left: .2rem;
+	padding-right: .2rem;
+}
 
 .top-right {
 	vertical-align: top;
     text-align: right;
-    font-size: x-small;
-    color: var(--orange);;
-	padding-left: .2rem;
 }
 
 .top-left {
 	vertical-align: top;
     text-align: left;
-    font-size: x-small;
-    color: var(--orange);;
-	padding-left: .2rem;
 }
 
 .drop-down {
@@ -304,4 +329,9 @@ textarea {
 	background-color: #c85000;
 	box-shadow: rgba(0, 0, 0, .06) 0 2px 4px;
 	transform: translateY(0);
+}
+
+.tbl-btn-spacing {
+    padding: 1.1em;
+    margin-top: .7rem;
 }
