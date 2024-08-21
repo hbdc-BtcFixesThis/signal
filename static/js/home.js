@@ -55,7 +55,10 @@ function genRows(rows) {
 									    'onclick="showRecordSignals(this)"></button>' +
 								'<button id="' + row.rid + '" ' +
 									    'class="signatureIcon orange-button "' +
-									    'onclick="showRecordDetails(this)"></button>' +
+									    'onclick="toggleRecordSignalModal(this)"></button>' +
+								'<button id="' + row.rid + '" ' +
+									    'class="fingerPrintIcon orange-button "' +
+									    'onclick="showRecordId(this)"></button>' +
 								"</div>" +
 							'</td>' +
 							'<td class="record-stats-text">' +
@@ -70,6 +73,11 @@ function genRows(rows) {
 							'</td>' +
 						 '</tr>';
 	}
+}
+
+function showRecordId(e) {
+	document.getElementById(recordDetailsID).innerHTML = '<pre class="grey-text" style="text-wrap: balance;">' + e.id + "</pre>";
+	detailsDialog.showModal();
 }
 
 function successfullyRetrievedRecordValue(xhr) {

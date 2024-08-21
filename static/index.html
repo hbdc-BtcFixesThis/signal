@@ -192,18 +192,11 @@
 		</div>
 	</div>
 
-	<div class="modal w100 h100" id="create-record-modal">
+	<div class="modal w100 h100" id="record-modal">
 		<img class="bg w100 h100" src="images/rabbithole.jpg" alt="Signal through the noise">
 		<div class="modal-content box-shadow">
 			<span class="close-button" id="cancel-create-trigger">×</span>
 			<form name="broadcast">
-				<input type="number"
-					   id="new-record-signal-sats"
-					   class="signal-sats"
-					   name="new-record-sats"
-					   placeholder="Sats"
-					   step=1>
-	  
 				<input type="text"
 					   id="new-record-name"
 					   name="new-record-name"
@@ -215,6 +208,13 @@
 						  placeholder="Value"
 						  style="height: 5em"
 						  autocomplete="off"></textarea>
+
+				<input type="number"
+					   id="new-record-signal-sats"
+					   class="signal-sats"
+					   name="new-record-sats"
+					   placeholder="Sats"
+					   step=1>
 
 				<input type="text"
 					   id="signal-wallet-address"
