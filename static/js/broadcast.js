@@ -106,12 +106,12 @@ submitNewRecord.addEventListener('click', (e)=> {
 	} else {
 		sendJsonPost(routes.newSignal, "POST", {
 			rid: recordState.rid,
-			signal: {
+			signals: [{
 				rid: recordState.rid,
 				btc_address: recordState.address.value,
 				sats: new Number(recordState.numSats.value),
 				signature: recordState.signature.value,
-			},
+			}],
 		}, successfullyAddedRecord, failedToAddRecord);
 		recordState.content.rid = '';
 	}

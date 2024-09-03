@@ -10,6 +10,7 @@ const RecordBucketName = "Record"
 // content of record
 // the result of RecordHash below is used as the id for these records
 type Record struct {
+	RID       KV       `json:"rid,omitempty"`
 	Sats      uint64   `json:"sats"`
 	Name      string   `json:"name"`
 	Value     string   `json:"value,omitempty"` // not stored
@@ -28,7 +29,12 @@ type SerializedRecord struct {
 	SignalIds []KV   `json:"sids"`
 }
 
-func (r *Record) ID() []byte { return String2ByteSlice(r.Hash()) }
+func (r *Record) ID() []byte {
+	if len(r.RID) > 0 {
+		return r.RID
+	}
+	return String2ByteSlice(r.Hash())
+}
 
 func (r *Record) Hash() string {
 	NHash := SHA256(String2ByteSlice(r.Name))
