@@ -65,7 +65,31 @@ func (ss *SignalServer) getPage(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(records)
 }
 
-func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
+func (ss *SignalServer) logNewRecordAndOrSignalUpdates(updates *DataUpdates) {
+	logQueryPairs := func(KVs []Pair) {
+		for kv := range KVs {
+			ss.infoLog.Printf(
+				"\n\tkey: %s\n\tValue: %s",
+				KVs[kv].Key,
+				KVs[kv].Val,
+			)
+		}
+	}
+	logQueries := func(q []*Query, action string) {
+		ss.infoLog.Println("\n\n")
+		ss.infoLog.Println("--------------------------")
+		ss.infoLog.Printf("------------%s-----------", action)
+		for update := range q {
+			ss.infoLog.Printf("\n\n-------\nBucket: %s\n", q[update].Bucket)
+			logQueryPairs(q[update].KV)
+			ss.infoLog.Printf("\n\n-------\n")
+		}
+	}
+	logQueries(updates.Put, "PUT")
+	logQueries(updates.Delete, "DELETE")
+}
+
+func (ss *SignalServer) newRecordAndOrSignal(w http.ResponseWriter, r *http.Request) {
 	var rec Record
 	if err := json.NewDecoder(r.Body).Decode(&rec); err != nil {
 		ss.errorLog.Println(err)
@@ -79,28 +103,9 @@ func (ss *SignalServer) newRecord(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// debug
-	/*
-		ss.infoLog.Println("--------------------------")
-		ss.infoLog.Println("------------Put-----------")
-		for update := range updates.Put {
-			ss.infoLog.Printf("\n\n-------\nBucket: %s\n", updates.Put[update].Bucket)
-			for kv := range updates.Put[update].KV {
-				ss.infoLog.Printf("\nkey: %s\nValue: %s", updates.Put[update].KV[kv].Key, updates.Put[update].KV[kv].Val)
-			}
-			ss.infoLog.Println("\n\n-------\n")
-		}
-		ss.infoLog.Println("--------------------------")
-		ss.infoLog.Println("----------Delete----------")
-		for update := range updates.Delete {
-			ss.infoLog.Printf("\n\n-------\nBucket: %s\n", updates.Delete[update].Bucket)
-			for kv := range updates.Put[update].KV {
-				ss.infoLog.Printf("\nkey: %s\nValue: %s", updates.Delete[update].KV[kv].Key, updates.Put[update].KV[kv].Val)
-			}
-			ss.infoLog.Printf("\n\n-------\n")
-		}
-		ss.infoLog.Println("--------------------------")
-	*/
+	if true { // ss.debug {
+		ss.logNewRecordAndOrSignalUpdates(updates)
+	}
 	if err := ss.buckets.db.MultiWrite(updates); err != nil {
 		ss.errorLog.Println(err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -239,8 +244,8 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 	for i := 0; i < len(r.Signals); i++ {
 		// new signal writes updates for all buckets (rank, address,
 		// signal and record). This allows for the update to happen
-		// in a signgle transaction since all changes with respect
-		// to the incoming signals
+		// in a single transaction to keep the db responsible for
+		// rollbacks instead of managing state in the app
 		r.Signals[i].RecID = r.ID()
 		r.Signals[i].VBytes = r.VBytes
 
@@ -253,16 +258,20 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 			}
 			addrPendingSats[sid] += r.Signals[i].Sats
 
-			// should delete the record if issue found
 			treeUpdates, updatesErr := ss.NewSignal(r.Signals[i], addrPendingSats[sid])
-			if updatesErr != nil && isNewRec {
-				if err := ss.buckets.Record.Delete(ss.buckets.Record.DeleteRec(r.ID())); err != nil {
-					ss.errorLog.Println(err)
-					return &DataUpdates{}, err
-				}
-				if err := ss.buckets.Value.Delete(ss.buckets.Value.DeleteV(r.ID())); err != nil {
-					ss.errorLog.Println(err)
-					return &DataUpdates{}, err
+			if updatesErr != nil {
+				if isNewRec {
+					// should delete the record if issue found
+					err := ss.buckets.Record.Delete(ss.buckets.Record.DeleteRec(r.ID()))
+					if err != nil {
+						ss.errorLog.Println(err)
+						return &DataUpdates{}, err
+					}
+					err = ss.buckets.Value.Delete(ss.buckets.Value.DeleteV(r.ID()))
+					if err != nil {
+						ss.errorLog.Println(err)
+						return &DataUpdates{}, err
+					}
 				}
 				ss.errorLog.Println(updatesErr)
 				return &DataUpdates{}, updatesErr
