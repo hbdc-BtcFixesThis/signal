@@ -111,7 +111,6 @@ func (ss *SignalServer) newRecordAndOrSignal(w http.ResponseWriter, r *http.Requ
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
 	json.NewEncoder(w).Encode(rec.ID())
 }
 
@@ -237,6 +236,7 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 		r.AddSignals(internalRecord.Signals)
 		r.Sats = internalRecord.Sats
 		r.VHash = internalRecord.VHash
+		r.VBytes = internalRecord.VBytes
 	}
 
 	updates := &DataUpdates{}
@@ -247,7 +247,7 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 		// in a single transaction to keep the db responsible for
 		// rollbacks instead of managing state in the app
 		r.Signals[i].RecID = r.ID()
-		r.Signals[i].VBytes = r.VBytes
+		r.Signals[i].VBytes = r.vBytes()
 
 		// hash is the id of the signal as a string (.ID() returns a KV)
 		signalFound := len(ss.buckets.Signal.GetId(r.Signals[i].ID())) > 0
@@ -329,11 +329,12 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 		}
 	}
 
-	satsLeft := uint64(onChain) - SatsSignedFor(signals)
-	if (satsLeft - s.Sats - pendingSats) < s.Sats {
+	signedFor := SatsSignedFor(signals) + pendingSats + s.Sats
+	if uint64(onChain) < signedFor {
 		// pass in onchain total to avoid reaching out for it again
 		// TODO maybe cache these and update whenever blockheight
 		// changes to avoid unnecessary questions
+		ss.infoLog.Println("ss.insufficientFundsSignalReorg")
 		return ss.insufficientFundsSignalReorg(s, signals, onChain)
 	}
 

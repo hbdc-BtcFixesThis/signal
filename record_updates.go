@@ -138,15 +138,24 @@ func (sp *SignalProcessor) UpdateRankAndRecord() error {
 		}
 
 		oldRank := record.RankForSatCountB(sp.records[recId].oldTotal)
-		rankUpdates, reRankErr := sp.buckets.Rank.ReRankRec(
-			// (old rank, new rank, record id)
-			oldRank, record.RankB(), record.ID(),
-		)
-		if reRankErr != nil {
-			sp.errorLog.Println(reRankErr)
-			return reRankErr
+		if record.TotalSats() > uint64(0) {
+			rankUpdates, reRankErr := sp.buckets.Rank.ReRankRec(
+				// (old rank, new rank, record id)
+				oldRank, record.RankB(), record.ID(),
+			)
+			if reRankErr != nil {
+				sp.errorLog.Println(reRankErr)
+				return reRankErr
+			}
+			sp.updates.AppendUpdates(rankUpdates)
+		} else {
+			updates, err := sp.buckets.Rank.deleteRecFromRank(oldRank, record.ID())
+			if err != nil {
+				sp.errorLog.Println(err)
+				return err
+			}
+			sp.updates.AppendUpdates(updates)
 		}
-		sp.updates.AppendUpdates(rankUpdates)
 	}
 	return nil
 }

@@ -53,6 +53,16 @@ let fingerPrintIcon = `
 </svg>
 `
 
+function shouldInsertSVG(svg1, svg2) {
+	if (svg2 === undefined) {
+		return true;
+	}
+	if (svg1.children[0].attributes[0].value != svg2.children[0].attributes[0].value) {
+		return true;
+	}
+	return false;
+}
+
 function initIcons() {
 	const keys = [
 		Object.keys({nodesIcon})[0],
@@ -77,7 +87,11 @@ function initIcons() {
 	for (var i = 0; i < keys.length; i++) {
 		var containers = document.getElementsByClassName(keys[i])
 		for (var j = 0; j < containers.length; j++) {
-			if (!containers[j].innerHTML.includes(icons[keys[i]])) {
+			var svg1 = new DOMParser().parseFromString(icons[keys[i]], "image/svg+xml").children[0];
+			var svg2 = containers[j].children[0];
+			if (shouldInsertSVG(svg1, svg2)) {
+				// console.log(svg1.children[0].attributes[0].value)
+				// console.log(svg2.children[0].attributes[0].value)
 				containers[j].innerHTML += icons[keys[i]];
 			}
 		}
