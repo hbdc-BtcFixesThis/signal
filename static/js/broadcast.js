@@ -48,6 +48,9 @@ function successfullyAddedRecord(xhr) {
 	toggleCreateRecordModal();
 	showSuccessBanner(xhr.responseText)
 	clearRecordState();
+	// TODO when paginating, check last rank to see
+	// if table needs to be regenerated
+	genTable()
 }
 
 function failedToAddRecord(xhr) {
@@ -115,9 +118,6 @@ submitNewRecord.addEventListener('click', (e)=> {
 		}, successfullyAddedRecord, failedToAddRecord);
 		recordState.content.rid = '';
 	}
-	// TODO when paginating, check last rank to see
-	// if table needs to be regenerated
-	genTable()
 }, false);
 
 function successfullyRetrievedTemplate(xhr) {
