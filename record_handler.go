@@ -256,9 +256,9 @@ func (ss *SignalServer) IngestRecord(r Record) (*DataUpdates, error) {
 			if _, found := addrPendingSats[sid]; !found {
 				addrPendingSats[sid] = 0
 			}
-			addrPendingSats[sid] += r.Signals[i].Sats
 
 			treeUpdates, updatesErr := ss.NewSignal(r.Signals[i], addrPendingSats[sid])
+			addrPendingSats[sid] += r.Signals[i].Sats
 			if updatesErr != nil {
 				if isNewRec {
 					// should delete the record if issue found
@@ -335,7 +335,7 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 		// TODO maybe cache these and update whenever blockheight
 		// changes to avoid unnecessary questions
 		ss.infoLog.Println("ss.insufficientFundsSignalReorg")
-		return ss.insufficientFundsSignalReorg(s, signals, onChain)
+		return ss.insufficientFundsSignalReorg(s, signals, onChain-pendingSats)
 	}
 
 	return ss.updateRecordSignals([]Signal{s}, []Signal{})
@@ -365,12 +365,13 @@ func (ss *SignalServer) insufficientFundsSignalReorg(s Signal, addrSignals []Sig
 	satsCount := uint64(0)
 	vByteCount := uint64(0)
 	replaceUpTo := 0
-	for i := 1; i < len(addrSignals); i++ {
+	signedFor := SatsSignedFor(addrSignals)
+	for i := 0; i < len(addrSignals); i++ {
 		satsCount += addrSignals[i].Sats
 		vByteCount += addrSignals[i].VBytes
-		if newSignalSatsPerByte > float64(satsCount)/float64(vByteCount) {
-			if onchainAddrTotal-satsCount > s.Sats {
-				replaceUpTo = i
+		if newSignalSatsPerByte >= float64(satsCount)/float64(vByteCount) {
+			if signedFor-satsCount+s.Sats <= onchainAddrTotal {
+				replaceUpTo = i + 1
 				break
 			}
 		} else {

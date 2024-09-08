@@ -5,7 +5,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/bitonicnl/verify-signed-message/pkg"
+	verifier "github.com/bitonicnl/verify-signed-message/pkg"
 	"github.com/btcsuite/btcd/chaincfg"
 )
 
