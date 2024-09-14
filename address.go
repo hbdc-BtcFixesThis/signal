@@ -6,7 +6,16 @@ import (
 )
 
 type Address struct {
-	Signals []KV `json:"sig_ids"` // ids of signals (signed messages)
+	Signals              []KV   `json:"sig_ids"` // ids of signals (signed messages)
+	SatsSinceLastChecked uint64 `json:"sats"`    // last onchain sat count
+}
+
+func (a *Address) UpdateTotal(addr string) error {
+	total, err := BtcAddressTotal(addr)
+	if err == nil {
+		a.SatsSinceLastChecked = total
+	}
+	return err
 }
 
 func (a *Address) DeleteIds(removeIds []KV) {

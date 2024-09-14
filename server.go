@@ -25,6 +25,10 @@ type SignalServer struct {
 	sc       *ServerConf
 	nc       *NodeConf
 
+	// I realize I could save space on the return but let's
+	// bee optimistic keep it a 64. Can you imagine?
+	lastBlock uint64
+
 	sync.RWMutex
 }
 
@@ -131,7 +135,11 @@ func (ss *SignalServer) closeNodeDBs() {
 */
 
 func (ss *SignalServer) Run() {
-	ss.infoLog.Printf("\nVisit https://0.0.0.0%s\n", ss.sc.Port(nil))
+	ss.infoLog.Printf("\nStarting server! Visit https://0.0.0.0%s\n", ss.sc.Port(nil))
+
+	addressMonitorCtx, cancelAddressMonitor := context.WithCancel(context.Background())
+	go ss.runAddressMonitor(addressMonitorCtx)
+	defer cancelAddressMonitor()
 
 	s := &http.Server{
 		Addr:           ByteSlice2String(ss.sc.Port(nil)),
