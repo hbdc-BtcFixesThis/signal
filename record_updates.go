@@ -34,6 +34,10 @@ func (sp *SignalProcessor) getAddress(signal Signal) error {
 			sp.errorLog.Println(err)
 			return err
 		}
+		if satsErr := address.UpdateTotal(signal.BtcAddress.String()); satsErr != nil {
+			sp.errorLog.Println(satsErr)
+			return satsErr
+		}
 		sp.addresses[signal.BtcAddress.String()] = &address
 	}
 	return nil
