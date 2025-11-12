@@ -65,16 +65,24 @@ func newSignalServer() (*SignalServer, error) {
 	errLog := log.New(os.Stderr, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 	infoLog := log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
 
-	infoLog.Printf("Opening conf db; filepath: %s", ServerConfFullPath.Default())
-	db := MustOpenAndWrapDB(ServerConfFullPath.Default(), errLog, infoLog)
-	infoLog.Printf("Opening signal db; filepath: %s", SignalDataDBFullPath.Default())
-	sdb := MustOpenAndWrapDB(SignalDataDBFullPath.Default(), errLog, infoLog)
+	scfdp := ServerConfFullPath.Default()
+	infoLog.Printf("Opening conf db; filepath: %s", scfdp)
+
+	db := MustOpenAndWrapDB(scfdp, errLog, infoLog)
 	dbwc := &DBWithCache{
 		cache: make(map[string][]byte),
 		DB:    db,
 	}
 	sc := &ServerConf{dbwc}
 	nc := &NodeConf{dbwc}
+
+	// create if not exists
+	sc.CreateBucket(&Query{Bucket: sc.ConfBucketName()})
+	sdfp := sc.SignalDataDBFullPath(nil)
+
+	infoLog.Printf("Opening signal db; filepath: %s", sdfp)
+	sdb := MustOpenAndWrapDB(string(sdfp), errLog, infoLog)
+
 	sb := &SignalBuckets{
 		Record:  &RecordBucket{sdb},
 		Value:   &ValueBucket{sdb},
@@ -85,7 +93,6 @@ func newSignalServer() (*SignalServer, error) {
 	}
 
 	// create if not exists
-	sc.CreateBucket(&Query{Bucket: sc.ConfBucketName()})
 	nc.CreateBucket(&Query{Bucket: nc.ConfBucketName()})
 	log.SetFlags(log.Lshortfile)
 	ss := &SignalServer{
