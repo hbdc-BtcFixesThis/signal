@@ -24,18 +24,19 @@ func (sc *ServerConf) gop(k ServerConfKey, v []byte) []byte {
 	return sc.GetOrPut(sc.ConfBucketName(), k.Bytes(), v, k.DefaultBytes())
 }
 
-func (sc ServerConf) ConfBucketName() []byte       { return ServerConfBucket.DefaultBytes() }
-func (sc ServerConf) ConfFname() string            { return ServerConfFileName.Default() }
-func (sc ServerConf) FullPath() string             { return ServerConfFullPath.Default() }
-func (sc *ServerConf) Port(v []byte) []byte        { return sc.gop(Port, v) }
-func (sc *ServerConf) UiDir(v []byte) []byte       { return sc.gop(UiDir, v) }
-func (sc *ServerConf) Admin(v []byte) []byte       { return sc.gop(Admin, v) }
-func (sc *ServerConf) nodeIds(v []byte) []byte     { return sc.gop(NodeIds, v) }
-func (sc *ServerConf) PassHash(v []byte) []byte    { return sc.gop(PassHash, v) }
-func (sc *ServerConf) DefaultNode(v []byte) []byte { return sc.gop(DefaultNode, v) }
-func (sc *ServerConf) TlsCrtFname(v []byte) []byte { return sc.gop(TlsCrtFname, v) }
-func (sc *ServerConf) TlsKeyFname(v []byte) []byte { return sc.gop(TlsKeyFname, v) }
-func (sc *ServerConf) TlsHosts(v []byte) []byte    { return sc.gop(TlsHosts, v) }
+func (sc ServerConf) ConfBucketName() []byte                { return ServerConfBucket.DefaultBytes() }
+func (sc ServerConf) ConfFname() string                     { return ServerConfFileName.Default() }
+func (sc ServerConf) FullPath() string                      { return ServerConfFullPath.Default() }
+func (sc *ServerConf) Port(v []byte) []byte                 { return sc.gop(Port, v) }
+func (sc *ServerConf) UiDir(v []byte) []byte                { return sc.gop(UiDir, v) }
+func (sc *ServerConf) Admin(v []byte) []byte                { return sc.gop(Admin, v) }
+func (sc *ServerConf) nodeIds(v []byte) []byte              { return sc.gop(NodeIds, v) }
+func (sc *ServerConf) PassHash(v []byte) []byte             { return sc.gop(PassHash, v) }
+func (sc *ServerConf) DefaultNode(v []byte) []byte          { return sc.gop(DefaultNode, v) }
+func (sc *ServerConf) TlsCrtFname(v []byte) []byte          { return sc.gop(TlsCrtFname, v) }
+func (sc *ServerConf) TlsKeyFname(v []byte) []byte          { return sc.gop(TlsKeyFname, v) }
+func (sc *ServerConf) TlsHosts(v []byte) []byte             { return sc.gop(TlsHosts, v) }
+func (sc *ServerConf) SignalDataDBFullPath(v []byte) []byte { return sc.gop(SignalDataDBFullPath, v) }
 
 func (sc *ServerConf) TlsCrtPath() string {
 	return fp.Join(SignalHomeDir(), ByteSlice2String(sc.TlsCrtFname(nil)))
