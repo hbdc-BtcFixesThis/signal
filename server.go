@@ -59,6 +59,12 @@ func (ss *SignalServer) setHandlers() {
 	ss.serveMux.Handle("/record/value", jw(http.HandlerFunc(ss.getRecordValue)))
 	ss.serveMux.Handle("/record/signals", jw(http.HandlerFunc(ss.getRecordSignals)))
 	ss.serveMux.Handle("/message/template", jw(http.HandlerFunc(ss.getMessageTemplate)))
+
+	// server conf
+	ss.serveMux.Handle("/sc/TlsCrtFname", jw(http.HandlerFunc(ss.getTlsCrtFname)))
+	ss.serveMux.Handle("/sc/TlsKeyFname", jw(http.HandlerFunc(ss.getTlsKeyFname)))
+	ss.serveMux.Handle("/sc/TlsHosts", jw(http.HandlerFunc(ss.getTlsHosts)))
+	ss.serveMux.Handle("/sc/SignalDataDBFullPath", jw(http.HandlerFunc(ss.getSignalDataDBFullPath)))
 }
 
 func newSignalServer() (*SignalServer, error) {

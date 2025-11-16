@@ -11,6 +11,22 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+func (ss *SignalServer) getTlsCrtFname(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", ss.sc.TlsCrtFname(nil))
+}
+
+func (ss *SignalServer) getTlsKeyFname(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", ss.sc.TlsKeyFname(nil))
+}
+
+func (ss *SignalServer) getTlsHosts(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", ss.sc.TlsHosts(nil))
+}
+
+func (ss *SignalServer) getSignalDataDBFullPath(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "%s", ss.sc.SignalDataDBFullPath(nil))
+}
+
 func (ss *SignalServer) getRecordValue(w http.ResponseWriter, r *http.Request) {
 	rid := r.URL.Query().Get("rid")
 	if len(rid) == 0 {
@@ -309,7 +325,7 @@ func (ss *SignalServer) NewSignal(s Signal, pendingSats uint64) (*DataUpdates, e
 	if chainCheckErr != nil {
 		return updates, chainCheckErr
 	}
-	// onChain := uint64(1000000)
+	//onChain = uint64(1000000)
 	if onChain < s.Sats {
 		return updates, ErrInsufficientFunds
 	}
