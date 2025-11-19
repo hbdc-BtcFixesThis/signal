@@ -17,6 +17,9 @@ import (
 //go:embed static
 var static embed.FS
 
+// set in main.go init(); flag.BoolVar
+var enableDebug bool
+
 type SignalServer struct {
 	errorLog *log.Logger
 	infoLog  *log.Logger
