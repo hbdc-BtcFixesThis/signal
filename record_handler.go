@@ -119,7 +119,7 @@ func (ss *SignalServer) newRecordAndOrSignal(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if true { // ss.debug {
+	if enableDebug {
 		ss.logNewRecordAndOrSignalUpdates(updates)
 	}
 	if err := ss.buckets.db.MultiWrite(updates); err != nil {
