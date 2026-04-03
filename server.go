@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"crypto/tls"
-	"io/fs"
 	"net/http"
 	"os/signal"
 )
@@ -42,32 +41,6 @@ type SignalBuckets struct {
 	Address *AddressBucket
 	Rank    *RankBucket
 	db      *DB
-}
-
-func (ss *SignalServer) setHandlers() {
-	fs, _ := fs.Sub(static, string(ss.sc.UiDir(nil)))
-	ck := ss.CheckAPIKey
-	jw := JSONResponseHeadersWrapper
-
-	ss.serveMux.Handle("/", http.FileServer(http.FS(fs)))
-	ss.infoLog.Printf("Serving embedded file directory: %s", ss.sc.UiDir(nil))
-
-	// authenticated apis (settings)
-	ss.serveMux.Handle("/verify/token", jw(ck(http.HandlerFunc(ss.verifyHandler))))
-
-	// public
-	ss.serveMux.Handle("/new/record", jw(http.HandlerFunc(ss.newRecordAndOrSignal)))
-	ss.serveMux.Handle("/new/signal", jw(http.HandlerFunc(ss.newRecordAndOrSignal)))
-	ss.serveMux.Handle("/get/page", jw(http.HandlerFunc(ss.getPage)))
-	ss.serveMux.Handle("/record/value", jw(http.HandlerFunc(ss.getRecordValue)))
-	ss.serveMux.Handle("/record/signals", jw(http.HandlerFunc(ss.getRecordSignals)))
-	ss.serveMux.Handle("/message/template", jw(http.HandlerFunc(ss.getMessageTemplate)))
-
-	// server conf
-	ss.serveMux.Handle("/sc/TlsCrtFname", jw(http.HandlerFunc(ss.getTlsCrtFname)))
-	ss.serveMux.Handle("/sc/TlsKeyFname", jw(http.HandlerFunc(ss.getTlsKeyFname)))
-	ss.serveMux.Handle("/sc/TlsHosts", jw(http.HandlerFunc(ss.getTlsHosts)))
-	ss.serveMux.Handle("/sc/SignalDataDBFullPath", jw(http.HandlerFunc(ss.getSignalDataDBFullPath)))
 }
 
 func newSignalServer() (*SignalServer, error) {

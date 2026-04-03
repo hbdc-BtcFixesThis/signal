@@ -45,7 +45,7 @@
 
 		<div id="settings" class="server-settings settings-storage box-shadow">
 			<div id="db-select-settings" class="w100 hide">
-				<div class="select-dropdown">
+				<!--div class="select-dropdown">
 					<select class="drop-down"
 							id="select-db">
 						<option value="max_db_size">Max Databse Size</option>
@@ -58,7 +58,7 @@
 						<option value="" disabled></option>
 						<option value="" disabled></option>
 					</select>
-				</div>
+				</div--!>
 				<div class="select-dropdown form-input">
 					<label for="storage-space-left">Max: </label> 
 					<input type="number"
@@ -81,7 +81,7 @@
 						<option value="YB" disabled>YB</option>
 					</select>
 				</div>
-				<div class="form-input">
+				<!--div class="form-input">
 					<label for="path-to-data-dir">Path: </label> 
 					<input type="text"
 						   id="path-to-data-dir"
@@ -94,7 +94,7 @@
 						   id="password"
 						   name="password"
 						   placeholder="Database password">
-				</div>
+				</div--!>
 			</div>
 			<div id="peer-settings" class="settings-peers hide">
 				<div class="settings-content" id="nostr-peer-tbl">
@@ -184,12 +184,12 @@
 		<img class="bg w100 h100" src="images/key.jpg">
 		<div class="modal-content box-shadow">
 			<span class="close-button" id="cancel-login">×</span>
-			<form name="broadcast">	
-				<input type="text"
+			<form name="broadcast" style="padding-top: 7em;">	
+				<!--input type="text"
 					   id="auth-user"
 					   class="admin-user"
 					   name="auth-user"
-					   placeholder="user">
+					   placeholder="user"--!>
 				<input type="text"
 					   id="auth-key"
 					   class="auth-key"
@@ -205,7 +205,7 @@
 		<img class="bg w100 h100" src="images/rabbithole.jpg" alt="Signal through the noise">
 		<div class="modal-content box-shadow">
 			<span class="close-button" id="cancel-create-trigger">×</span>
-			<form name="broadcast">
+			<form name="broadcast" class="broadcast-form">
 				<input type="text"
 					   id="new-record-name"
 					   name="new-record-name"
