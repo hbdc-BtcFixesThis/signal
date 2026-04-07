@@ -50,8 +50,8 @@
 
 .settings-auth::before {background-image: url('/images/key.jpg');}
 .settings-bitcoin::before {background-image: url('/images/compass.jpg');}
-.settings-data-path::before {background-image: url('/images/lattice.jpg');}
-.settings-peers::before {background-image: url('/images/rabbithole.jpg');}
+.settings-data-path::before {background-image: url('/images/rabbithole.jpg');}
+.settings-peers::before {background-image: url('/images/lattice.jpg');}
 .settings-storage::before {background-image: url('/images/machine.jpg');}
 
 .expand-settings {

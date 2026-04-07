@@ -24,6 +24,10 @@ var lastOpened = null;
 
 function expandSettings(opening, e) {
 	e.preventDefault();
+	if (!isLoggedIn()) {
+		toggleLoginModal();
+		return;
+	}
 	if (lastOpened !== null) {
 		settingsContainer.classList.toggle("visible");
 		lastOpened.classList.toggle("visible");

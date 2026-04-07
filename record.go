@@ -48,6 +48,8 @@ func (r *Record) Hash() string {
 //	helper for incoming records only (otherwise VHash should used)
 func (r *Record) vHash() string { return SHA256(String2ByteSlice(r.Value)) }
 
+// vBytes stands for virtual bytes (not to be confused with value bytes)
+// this is a metric used to rank records
 func (r *Record) vBytes() uint64 {
 	if len(r.Value) > 0 {
 		nSize := binary.Size(String2ByteSlice(r.Name))

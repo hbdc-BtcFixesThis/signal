@@ -33,9 +33,9 @@ function isLoggedIn() {
 	// your password and the date of the token
 	// creation (check genToken below for impl)
 	sk = localStorage.getItem(AUTH_TOKEN);
-	su = localStorage.getItem(AUTH_USER);
+	// su = localStorage.getItem(AUTH_USER);
 
-	return Boolean(sk) && Boolean(su);
+	return Boolean(sk); // && Boolean(su);
 }	
 
 function successfullyUnlocked(xhr) {
@@ -46,15 +46,16 @@ function successfullyUnlocked(xhr) {
 		showSuccessBanner(resp.message);
 		removeLoadingClass(unlockButton);
 		// show(expandSettings);
-		expandSettings.click();
+		// expandSettings.click();
+		toggleLoginModal();
 
 		// set in browser to avoid loosing creds on refresh
 		localStorage.setItem(AUTH_TOKEN, genToken(authKey.value));
-		localStorage.setItem(AUTH_USER, authUser.value);
+		//localStorage.setItem(AUTH_USER, authUser.value);
 
 		// clear auth data from inputs
 		authKey.value = '';
-		authUser.value = '';
+		// authUser.value = '';
 	} else {
 		failedToUnlock(xhr);
 	}
@@ -66,7 +67,7 @@ function failedToUnlock(xhr) {
 	
 	// clear any auth creds stored in browser
 	localStorage.removeItem(AUTH_TOKEN);
-	localStorage.removeItem(AUTH_USER);
+	// localStorage.removeItem(AUTH_USER);
 }
 
 authKey.addEventListener("keypress", (e)=> {
@@ -80,18 +81,19 @@ unlock.addEventListener("click", (e)=> {
 	e.preventDefault();
 	addLoadingClass(unlockButton);
 	var key = authKey.value;
-	var user = authUser.value;
+	// var user = authUser.value;
 	if (Boolean(key)) {
 		key = genToken(key);
 	} else { 
 		key = localStorage.getItem(AUTH_TOKEN);
 	}
-	if (!Boolean(user)) {
-		user = localStorage.getItem(AUTH_USER);
-	}
+	// if (!Boolean(user)) {
+	//	user = localStorage.getItem(AUTH_USER);
+	// }
 
 	sendJsonPost(routes.verifyAuthToken + "?" + objectToEncodedQueryString({
-		user: user, key: key,
+		//user: user, key: key,
+		key: key,
 	}), "GET", null, successfullyUnlocked, failedToUnlock)
 });
 
